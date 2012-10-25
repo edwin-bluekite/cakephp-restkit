@@ -25,7 +25,7 @@ The RestKit plugin requires CakePHP 2.2
 
 Clone the repository into /app/Plugin/RestKit:
 
-     git submodule add git@github.com:bravo-kernel/cakephp-restkit.git Plugin/RestKit
+     git submodule add git://github.com/bravo-kernel/cakephp-restkit.git Plugin/RestKit
 
 Load the following components in /app/Controller/AppController.php
 
@@ -245,6 +245,7 @@ RestKit supports out-of-the box validation for the following URI options
 * refactor Exceptions debug information
 * make default RestKit HTTP Status Code description a configuration option
 * normalize html error responses (now share REST logic)
+* implement [REST Maturity Levels](http://martinfowler.com/articles/richardsonMaturityModel.html)
 * add security (deny all unless authorized)
 * add OAuth token handling (will require a separate app with OAuth server and login functionality)
 * add an extra 'exception' tag for returned error XML (requires overriding default XmlView somehow)
