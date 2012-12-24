@@ -20,25 +20,6 @@ class RestKitComponent extends Component {
 	protected $controller;
 
 	/**
-	 * $request holds a reference to the current request
-	 *
-	 * @var CakeRequest
-	 */
-	protected $request;
-
-	/**
-	 * $response holds a reference to the current response
-	 *
-	 * @var CakeResponse
-	 */
-	protected $response;
-
-	/**
-	 * $_errors holds all error-messages to be included in the response
-	 */
-	protected $_errors = array();
-
-	/**
 	 * initialize() is used to setup references to the the calling Controller, add
 	 * Cake Detectors and to enforce REST-only
 	 *
