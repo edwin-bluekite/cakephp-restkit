@@ -6,8 +6,9 @@ An attempt to create a full featured REST-only plugin for CakePHP.
 
 This plugin is heavily under construction so do not use it unless you value your production environment ;)
 
-Current limitations:
+Please note:
 
+* support for XML is dropped, JSON only from now on
 * automagic SimpleXML reformatting for CakePHP find() results limited to 'recursive' levels 0 and 1
 
 ## Features
@@ -19,7 +20,7 @@ Current limitations:
 
 ## Requirements
 
-The RestKit plugin requires CakePHP 2.2
+The RestKit plugin requires CakePHP 2.3 or higher ;)
 
 ## Installation
 

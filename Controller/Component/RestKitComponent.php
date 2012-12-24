@@ -70,6 +70,10 @@ class RestKitComponent extends Component {
 	 * @return void
 	 */
 	protected function setup(Controller $controller) {
+
+		//404 non-JSON calls
+		self::_forceJSON($controller);
+
 		// Cache local properties from the controller
 		$this->controller = $controller;
 		$this->request = $controller->request;
@@ -113,134 +117,24 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 * render() is a convenient function used to set data in format as required for Viewless XML/Json rendering
-	 *
-	 * @param type $arrays in standard Cakephp find() result format
-	 * TODO calling without arguments now generates an empty JSON array. Maybe throw a 500 here so we can detect ?
-	 */
-	public function render($arrays = array()) {
-		$this->_setViewData($arrays);
-	}
-
-	/**
-	 * _setViewData() handles setting data and _serialize logic needed to render viewless XML/JSON responses
-	 *
-	 * The following will be generated when a single array is passed
-	 * $this->set(array('users' => $users));
-	 * $this->set(array('_serialize' => array('users')));
-	 *
-	 * The following will be generated when multiple arrays are passed
-	 * $this->set(array('users' => $users, 'debug' => $debug));
-	 * $this->set(array('_serialize' => array('users', 'debug')));
-	 *
-	 * NOTE arrays passed (resulting from 'find' queries MUST be re-formatted using the following:
-	 * $users = array('user' => Set::extract('{n}.User', $users));
-	 *
-	 * @todo include debug information only if enabled in configuration file
-	 *
-	 * @param mixed optional string used as the SimpleXml rootnode (e.g. users for <users>)
-	 * @param mixed array with default CakePHP find() result
-	 */
-	protected function _setViewData($arrays) {
-
-		// add debug information to the JSON response
-		$errors = $this->getErrors();
-		if (!empty($errors)) {
-			$arrays['errors'] = $errors;
-		}
-
-		$serializeKeynames = array();
-		foreach ($arrays as $key => $array) {
-
-			$simpleXml = $this->formatCakeFindResultForSimpleXML($array);
-			$defaultRootNode = key($simpleXml);
-
-			// Manipulate $simpleXml array if a rootnode-string is passed
-			if (is_string($key)) {
-				$simpleXml[$key] = $simpleXml[$defaultRootNode];
-				unset($simpleXml[$defaultRootNode]);
-			} else {
-				$key = $defaultRootNode;
-			}
-
-			// make data available and remember the key for mass _serialize()
-			$this->controller->set($simpleXml);
-			$key = key($simpleXml);
-			array_push($serializeKeynames, $key);
-		}
-		// we MUST _serialize all arrays at once
-		$this->controller->set(array('_serialize' => $serializeKeynames));
-	}
-
-	/**
-	 * formatCakeFindResultForSimpleXML() reformats default CakePHP arrays produced
-	 * by find() queries into a format that is suitable for passing to SimpleXML
-	 *
-	 * @param mixed CakePHP find() result
-	 * @return mixed array ready for passing to SimpleXml
-	 */
-	public function formatCakeFindResultForSimpleXML($cakeFindResult) {
-
-		// make findById() and find('first') format identical to find() format
-		if (Hash::check($cakeFindResult, '{s}')) {
-			$temp = $cakeFindResult;
-			unset($cakeFindResult);
-			$cakeFindResult[] = $temp;
-		}
-
-		$recordIndex = 0;
-		$simpleXmlArray = array();
-		foreach ($cakeFindResult as $foundRecord) {
-
-			$modelIndex = 0;
-			foreach (array_keys($cakeFindResult[0]) as $modelKey) {  // multiple root Models mean associations present (recursive > 1)
-				$modelUnderscored = Inflector::underscore($modelKey); //e.g. ExamprepCustom to examprep_custom
-				$extracted = array($modelUnderscored => Hash::extract($foundRecord, "{$modelKey}"));
-
-				// first Model needs to be processed differently
-				if ($modelIndex == 0) {
-					$rootKey = $modelUnderscored;
-					$rootKeyPluralized = Inflector::pluralize($rootKey); // store to return as the root-node later (e.g. users)
-					$simpleXmlArray[$rootKeyPluralized][$rootKey][$recordIndex] = Hash::extract($extracted, "{$modelUnderscored}"); // extract only array-keys to prevent double <tags>
-				} else {
-					$pluralized = Inflector::pluralize($modelUnderscored);
-					$simpleXmlArray[$rootKeyPluralized][$rootKey][$recordIndex][$pluralized] = $extracted;
-				}
-				$modelIndex++;
-			}
-			$recordIndex++;
-		}
-		return $simpleXmlArray;
-	}
-
-	/**
-	 * _checkExtension() is used to:
-	 * - prevent a 500-error for html calls to XML/JSON actions with no existing html views (and instead return a 404)
-	 * - allow only specific pages to be requested as HTML (e.g. for OAuth or logging in)
-	 *
-	 * @TODO decide whether to add support for specified exceptions in controller::action pairs
+	 * _forceJSON() will always throw a 404 for ALL non-JSON requests (instead of default
+	 * Cake behavior that would for example throw a 500 for requests not using an extension)
 	 *
 	 * @param void
 	 */
-	public function checkRequestMethod(Controller $controller) {
+	protected function _forceJSON(Controller $controller) {
 
-		// skip if .xml or .json extension is used
-		if (in_array($controller->params['ext'], array('xml', 'json'))) {
+		// allow if .json extension is used
+		if (in_array($controller->params['ext'], array('json'))) {
+			return;
+		}
+		// allow if a JSON Accept Header is used
+		if ($controller->RequestHandler->accepts('json')) {
 			return;
 		}
 
-		// skip if the accept-header is JSON or XML
-		$acceptHeaders = $controller->request->parseAccept();
-		if (in_array($acceptHeaders['1.0'][0], array('application/xml', 'application/json'))) {
-			return;
-		}
-
-		// This request is neither JSON nor XML so return a 404 for all calls
-		// that are not in the exceptions array (these will be accessible as html)
-		// TODO: make these controller/action pairs
-		//if (!in_array($controller->params['controller'], array('OAuth'))) {
-		//	throw new NotFoundException();
-		//}
+		// definitely not JSON so throw a 404
+		throw new NotFoundException();
 	}
 
 	/**
@@ -314,7 +208,8 @@ class RestKitComponent extends Component {
 	 * @return void
 	 */
 	private static function _enableExtensions() {
-		Router::parseExtensions();
-		Router::setExtensions(Configure::read('RestKit.Request.enabledExtensions'));
+		Router::parseExtensions(array('json'));
+		Router::setExtensions(array('json'));
 	}
+
 }

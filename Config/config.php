@@ -4,7 +4,6 @@ $config['RestKit'] = array(
     'version' => '1.0.0',
 
     'Request' => array(
-	'enabledExtensions' => array('xml', 'json'),
 	'prefix' => 'v1',						// prefix string to enable, false to disable
 	'forcePrefix' => false						// true will disable the default CakePHP routes (allowing only prefixed access)
     ),
