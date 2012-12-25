@@ -52,16 +52,9 @@ class RestKitComponent extends Component {
 	 */
 	protected function setup(Controller $controller) {
 
-		// Cache local properties from the controller
-		$this->controller = $controller;
-
-		// 404 non-JSON calls
-		self::_forceJSON();
-
-		// authenticate unless explicitely made public
-//		$controller->Auth->autoRedirect = false;
-		//parent::beforeFilter();
-		self::_authenticate();
+		$this->controller = $controller; // create local reference to calling controller
+		self::_forceJSON();   // return 404s for all non-JSON calls
+		self::_authenticate();   // deny-unless (if Authentication is enabled)
 	}
 
 	/**
@@ -86,12 +79,12 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 *  Authenticate
+	 * authenticate() is used to
 	 *
 	 * @return type
 	 * @throws ForbiddenException
 	 *
-	 * @todo Add Protect-Everything-Except logic
+	 * @todo document
 	 */
 	protected function _authenticate() {
 
@@ -150,8 +143,6 @@ class RestKitComponent extends Component {
 	public function getErrors() {
 		return $this->_errors;
 	}
-
-
 
 	/**
 	 * validateUriOptions() merges passed URI options with default options, validates them against the model and resets unvalidated options to the default value.
