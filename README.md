@@ -9,6 +9,7 @@ This plugin is heavily under construction so do not use it unless you value your
 Please note:
 
 * support for XML is dropped, JSON only from now on
+* added Basic authentication (enable in the config)
 
 ## Features
 
@@ -31,6 +32,10 @@ Load the following components in /app/Controller/AppController.php
 
     public $components = array(
         'RequestHandler',
+	 'Auth' => array(
+             'authenticate' => array(
+                 'Basic' => array(
+                 'fields' => array('username' => 'username')))),
         'RestKit.RestKit');
 
 Enable the RestKit plugin in /app/Config/bootstrap.php:

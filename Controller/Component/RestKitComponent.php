@@ -18,25 +18,7 @@ class RestKitComponent extends Component {
 	 * @var Controller
 	 */
 	protected $controller;
-
-	/**
-	 * $request holds a reference to the current request
-	 *
-	 * @var CakeRequest
-	 */
 	protected $request;
-
-	/**
-	 * $response holds a reference to the current response
-	 *
-	 * @var CakeResponse
-	 */
-	protected $response;
-
-	/**
-	 * $_errors holds all error-messages to be included in the response
-	 */
-	protected $_errors = array();
 
 	/**
 	 * initialize() is used to setup references to the the calling Controller, add
@@ -71,13 +53,42 @@ class RestKitComponent extends Component {
 	 */
 	protected function setup(Controller $controller) {
 
-		//404 non-JSON calls
+		// 404 non-JSON calls
 		self::_forceJSON($controller);
 
 		// Cache local properties from the controller
 		$this->controller = $controller;
 		$this->request = $controller->request;
-		$this->response = $controller->response;
+
+		// authenticate unless explicitely made public
+		$controller->Auth->autoRedirect = false;
+		//parent::beforeFilter();
+		self::_authenticate();
+	}
+
+	/**
+	 *  Authenticate
+	 *
+	 * @param CakeRequest $request
+	 * @return type
+	 * @throws ForbiddenException
+	 *
+	 * @todo Add Protect-Everything-Except logic
+	 */
+	protected function _authenticate() {
+
+		// With authentication TURNED OFF COMPLETELY just log everybody in using dummy data
+		if (Configure::read('RestKit.Authenticate') == false) {
+			$this->controller->Auth->login('dummy-data');
+			return;
+		}
+
+		// Authentication required (check passed user/pass)
+		if ($this->controller->Auth->login()) {
+			return;
+		} else {
+			throw new ForbiddenException('Permission denied, invalid credentials');
+		}
 	}
 
 	/**
