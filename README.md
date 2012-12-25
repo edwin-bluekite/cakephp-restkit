@@ -9,7 +9,8 @@ This plugin is heavily under construction so do not use it unless you value your
 Please note:
 
 * support for XML is dropped, JSON only from now on
-* added Basic authentication (enable in the config)
+* added Basic authentication (enable in the config, docs will follow)
+* added deny-all-except-granted when authentication is on (docs will follow)
 
 ## Features
 

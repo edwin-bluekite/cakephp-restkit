@@ -18,7 +18,6 @@ class RestKitComponent extends Component {
 	 * @var Controller
 	 */
 	protected $controller;
-	protected $request;
 
 	/**
 	 * initialize() is used to setup references to the the calling Controller, add
@@ -53,23 +52,42 @@ class RestKitComponent extends Component {
 	 */
 	protected function setup(Controller $controller) {
 
-		// 404 non-JSON calls
-		self::_forceJSON($controller);
-
 		// Cache local properties from the controller
 		$this->controller = $controller;
-		$this->request = $controller->request;
+
+		// 404 non-JSON calls
+		self::_forceJSON();
 
 		// authenticate unless explicitely made public
-		$controller->Auth->autoRedirect = false;
+//		$controller->Auth->autoRedirect = false;
 		//parent::beforeFilter();
 		self::_authenticate();
 	}
 
 	/**
+	 * _forceJSON() will always throw a 404 for ALL non-JSON requests (instead of default
+	 * Cake behavior that would for example throw a 500 for requests not using an extension)
+	 *
+	 * @param void
+	 */
+	protected function _forceJSON() {
+
+		// allow if .json extension is used
+		if (in_array($this->controller->params['ext'], array('json'))) {
+			return;
+		}
+		// allow if a JSON Accept Header is used
+		if ($this->controller->RequestHandler->accepts('json')) {
+			return;
+		}
+
+		// definitely not JSON so throw a 404
+		throw new NotFoundException();
+	}
+
+	/**
 	 *  Authenticate
 	 *
-	 * @param CakeRequest $request
 	 * @return type
 	 * @throws ForbiddenException
 	 *
@@ -77,13 +95,19 @@ class RestKitComponent extends Component {
 	 */
 	protected function _authenticate() {
 
-		// With authentication TURNED OFF COMPLETELY just log everybody in using dummy data
+		// Log in user using dummy data if authentication is TURNED OFF COMPLETELY
 		if (Configure::read('RestKit.Authenticate') == false) {
 			$this->controller->Auth->login('dummy-data');
 			return;
 		}
 
-		// Authentication required (check passed user/pass)
+		// Log in user using dummy data if current action is DEFINED IN CONTROLLER ALLOW-PUBLIC
+		if (in_array($this->controller->action, $this->controller->allowPublic)) {
+			$this->controller->Auth->login('dummy-data');
+			return;
+		}
+
+		// Authentication required; let AuthComponent handle passed username/password
 		if ($this->controller->Auth->login()) {
 			return;
 		} else {
@@ -127,26 +151,7 @@ class RestKitComponent extends Component {
 		return $this->_errors;
 	}
 
-	/**
-	 * _forceJSON() will always throw a 404 for ALL non-JSON requests (instead of default
-	 * Cake behavior that would for example throw a 500 for requests not using an extension)
-	 *
-	 * @param void
-	 */
-	protected function _forceJSON(Controller $controller) {
 
-		// allow if .json extension is used
-		if (in_array($controller->params['ext'], array('json'))) {
-			return;
-		}
-		// allow if a JSON Accept Header is used
-		if ($controller->RequestHandler->accepts('json')) {
-			return;
-		}
-
-		// definitely not JSON so throw a 404
-		throw new NotFoundException();
-	}
 
 	/**
 	 * validateUriOptions() merges passed URI options with default options, validates them against the model and resets unvalidated options to the default value.
@@ -223,5 +228,4 @@ class RestKitComponent extends Component {
 		Router::setExtensions(array('json'));
 	}
 
-	
 }
