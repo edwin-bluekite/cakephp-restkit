@@ -223,4 +223,5 @@ class RestKitComponent extends Component {
 		Router::setExtensions(array('json'));
 	}
 
+	
 }
