@@ -216,7 +216,6 @@ class RestKitComponent extends Component {
 	 */
 	private static function _enableExtensions() {
 		Router::parseExtensions('json');
-		Router::setExtensions(array('json'));
 	}
 
 }
