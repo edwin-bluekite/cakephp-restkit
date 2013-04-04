@@ -180,6 +180,8 @@ class RestKitComponent extends Component {
 	/**
 	 * routes() is used to provide the functionality normally used in routes.php like
 	 * setting the allowed extensions, prefixing, etc.
+	 *
+	 * @todo automagically mapResources for all parent controllers
 	 */
 	public static function routes() {
 		self::_mapResources();
@@ -193,7 +195,7 @@ class RestKitComponent extends Component {
 
 		if (Configure::read('RestKit.Request.prefix') == true) {
 			Router::mapResources(
-				array('Users', 'Exampreps'), array('prefix' => '/' . Configure::read('RestKit.Request.prefix') . '/')
+				array('users', 'placeholders'), array('prefix' => '/' . Configure::read('RestKit.Request.prefix') . '/')
 			);
 
 			// skip loading Cake's default routes when forcePrefix is disabled in config
@@ -203,7 +205,7 @@ class RestKitComponent extends Component {
 		} else {
 			require CAKE . 'Config' . DS . 'routes.php'; // load CakePHP''s default routes
 			Router::mapResources(
-				array('Users', 'Exampreps')
+				array('users', 'placeholders')
 			);
 		}
 	}
