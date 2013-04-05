@@ -29,6 +29,10 @@ Clone the repository into /app/Plugin/RestKit:
 
      git submodule add git://github.com/bravo-kernel/cakephp-restkit.git Plugin/RestKit
 
+Make sure the Exception class is loaded /app/Controller/AppController.php:
+
+    App::uses('RestKitException', 'Plugin/RestKit/Lib/Error/Exception');
+
 Load the following components in /app/Controller/AppController.php
 
     public $components = array(
