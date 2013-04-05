@@ -29,6 +29,7 @@ class RestKitComponent extends Component {
 	 * @return void
 	 */
 	public function initialize(Controller $controller) {
+		$this->controller = $controller; // create local reference to calling controller
 		self::setup($controller); // create references and add Cake Detectors
 	}
 
@@ -51,8 +52,6 @@ class RestKitComponent extends Component {
 	 * @return void
 	 */
 	protected function setup(Controller $controller) {
-
-		$this->controller = $controller; // create local reference to calling controller
 		self::_forceJSON();   // return 404s for all non-JSON calls
 		self::_authenticate();   // deny-unless (if Authentication is enabled)
 	}
@@ -95,15 +94,15 @@ class RestKitComponent extends Component {
 		}
 
 		// Log in user using dummy data if current action is DEFINED IN CONTROLLER ALLOW-PUBLIC
-		if (in_array($this->controller->action, $this->controller->allowPublic)) {
-			$this->controller->Auth->login('dummy-data');
-			return;
+		if (isset($this->controller->allowPublic)) {
+			if (in_array($this->controller->action, $this->controller->allowPublic)) {
+				$this->controller->Auth->login('dummy-data');
+				return;
+			}
 		}
 
-		// Authentication required; let AuthComponent handle passed username/password
-		if ($this->controller->Auth->login()) {
-			return;
-		} else {
+		//Authentication required; let AuthComponent handle passed username/password
+		if (!$this->controller->Auth->login()) {
 			throw new ForbiddenException('Permission denied, invalid credentials');
 		}
 	}
@@ -132,7 +131,7 @@ class RestKitComponent extends Component {
 			'option' => $optionName,
 			'message' => $message,
 			'moreInfo' => 'http://ecloud.alt3.virtual/errors/23532'
-			)));
+		)));
 	}
 
 	/**
@@ -184,8 +183,12 @@ class RestKitComponent extends Component {
 	 * @todo automagically mapResources for all parent controllers
 	 */
 	public static function routes() {
-		self::_mapResources();
-		self::_enableExtensions();
+
+		Router::mapResources(array('users'));
+		Router::parseExtensions('json', 'xml');
+
+		//self::_mapResources();
+		//self::_enableExtensions();
 	}
 
 	/**
@@ -203,10 +206,10 @@ class RestKitComponent extends Component {
 				require CAKE . 'Config' . DS . 'routes.php';
 			}
 		} else {
-			require CAKE . 'Config' . DS . 'routes.php'; // load CakePHP''s default routes
 			Router::mapResources(
 				array('users', 'placeholders')
 			);
+			require CAKE . 'Config' . DS . 'routes.php'; // load CakePHP''s default routes
 		}
 	}
 
@@ -217,7 +220,8 @@ class RestKitComponent extends Component {
 	 * @return void
 	 */
 	private static function _enableExtensions() {
-		Router::parseExtensions('json');
+		//Router::setExtensions('json');
+		Router::parseExtensions();
 	}
 
 }
