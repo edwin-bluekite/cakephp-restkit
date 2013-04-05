@@ -87,6 +87,11 @@ class RestKitComponent extends Component {
 	 */
 	protected function _authenticate() {
 
+		// Skip all checks if user is already logged in
+		if ($this->controller->Auth->loggedIn()){
+			return;
+		}
+
 		// Log in user using dummy data if authentication is TURNED OFF COMPLETELY
 		if (Configure::read('RestKit.Authenticate') == false) {
 			$this->controller->Auth->login('dummy-data');
@@ -101,7 +106,7 @@ class RestKitComponent extends Component {
 			}
 		}
 
-		//Authentication required; let AuthComponent handle passed username/password
+		// Authentication required; let AuthComponent handle passed username/password
 		if (!$this->controller->Auth->login()) {
 			throw new ForbiddenException('Permission denied, invalid credentials');
 		}
