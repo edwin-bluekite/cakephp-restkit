@@ -21,7 +21,7 @@ Please note:
 
 ## Requirements
 
-The RestKit plugin requires CakePHP 2.3 or higher ;)
+The RestKit plugin requires CakePHP 2.4 or higher
 
 ## Installation
 
