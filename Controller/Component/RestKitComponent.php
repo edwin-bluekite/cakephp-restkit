@@ -53,7 +53,10 @@ class RestKitComponent extends Component {
 	 */
 	protected function setup(Controller $controller) {
 		self::_forceJSON();   // return 404s for all non-JSON calls
-		self::_authenticate();   // deny-unless (if Authentication is enabled)
+		// allow public access to everything when 'Authenticate' is set to false in the config file
+		if (Configure::read('RestKit.Authenticate') == false) {
+			$this->controller->Auth->allow();
+		}
 	}
 
 	/**
@@ -75,41 +78,6 @@ class RestKitComponent extends Component {
 
 		// definitely not JSON so throw a 404
 		throw new NotFoundException();
-	}
-
-	/**
-	 * authenticate() is used to
-	 *
-	 * @return type
-	 * @throws ForbiddenException
-	 *
-	 * @todo document
-	 */
-	protected function _authenticate() {
-
-		// Skip all checks if user is already logged in
-		if ($this->controller->Auth->loggedIn()){
-			return;
-		}
-
-		// Log in user using dummy data if authentication is TURNED OFF COMPLETELY
-		if (Configure::read('RestKit.Authenticate') == false) {
-			$this->controller->Auth->login('dummy-data');
-			return;
-		}
-
-		// Log in user using dummy data if current action is DEFINED IN CONTROLLER ALLOW-PUBLIC
-		if (isset($this->controller->allowPublic)) {
-			if (in_array($this->controller->action, $this->controller->allowPublic)) {
-				$this->controller->Auth->login('dummy-data');
-				return;
-			}
-		}
-
-		// Authentication required; let AuthComponent handle passed username/password
-		if (!$this->controller->Auth->login()) {
-			throw new ForbiddenException('Permission denied, invalid credentials');
-		}
 	}
 
 	/**
