@@ -157,9 +157,8 @@ class RestKitComponent extends Component {
 	 */
 	public static function routes() {
 
-		Router::mapResources(array('users'));
+		Router::mapResources(self::_getControllers());
 		Router::parseExtensions('json', 'xml');
-
 		//self::_mapResources();
 		//self::_enableExtensions();
 	}
@@ -195,6 +194,25 @@ class RestKitComponent extends Component {
 	private static function _enableExtensions() {
 		//Router::setExtensions('json');
 		Router::parseExtensions();
+	}
+
+	/**
+	 * _getControllers() generates an array with all Controllers in the application.
+	 *
+	 * The array can be passed to Router::mapResources() so that REST resource routes will
+	 * automatically be created for all controllers in the app.
+	 *
+	 * @return array
+	 */
+	private static function _getControllers() {
+		$controllerList = App::objects('controller');
+		$stripped = array();
+		foreach ($controllerList as $controller) {
+			if ($controller != 'AppController') {
+				array_push($stripped, str_replace('Controller', '', $controller));
+			}
+		}
+		return($stripped);
 	}
 
 }
