@@ -181,13 +181,13 @@ so you can protect your API against stuff like SQL-injections and what have not.
 
 If validation fails you can access the validation errors using $this->RestKit->validationErrors.
 
-Check if a query parameter is being used:**
+**Check if a query parameter is being used:**
 
     if ($this->RestKit->hasOption('order')){
         echo 'Query parameter order wcontained a value';
     }
 
-Check if the value of the query parameter passes validation:**
+**Check if the value of the query parameter passes validation:**
 
     if ($this->RestKit->validateOption('order')){
         echo 'Value for parameter order contained either asc or desc;
