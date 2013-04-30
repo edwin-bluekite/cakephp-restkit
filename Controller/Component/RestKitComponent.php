@@ -132,7 +132,6 @@ class RestKitComponent extends Component {
 	 * @return boolean
 	 */
 	public function validateOption($key) {
-		pr($this->controller->request->query);
 		$optionModel = ClassRegistry::init('RestKit.RestOption'); // initialize RestOption model
 		$optionModel->set($this->controller->request->query);  // set data
 		if ($optionModel->validates(array('fieldList' => array($key)))) {
