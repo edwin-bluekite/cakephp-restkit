@@ -179,7 +179,6 @@ so you can protect your API against stuff like SQL-injections and what have not.
 
 * **sort** allow either 'asc' or 'desc'
 * **limit** allow numeric only
-* suggestions are more than welcome
 
 **hasOption():**
 
@@ -190,6 +189,7 @@ so you can protect your API against stuff like SQL-injections and what have not.
 **validOption():**
 
 validOption() only approves the value of a parameter if:
+
  * the parameter is actually being used
  * a matching validation rule exist
  * the value passes the validation rule
