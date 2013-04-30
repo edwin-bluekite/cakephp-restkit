@@ -186,18 +186,15 @@ so you can protect your API against stuff like SQL-injections and what have not.
         echo "Query parameter 'order' exists but might not have a (valid) value";
     }
 
-**validateOption():**
-
-    if ($this->RestKit->validateOption('order')){
-        echo "Value for parameter 'order' was either exactly asc or desc";
-    }
-
 **validOption():**
 
-validOption() is a shorthand function that calls both hasOption() and validateOption().
+validOption() validates the value of a parameter by checking if:
+ * the parameter was actually passed in the URL
+ * a matching RestKitOption validation rule exist in the model
+ * the value passes the validation rule
 
-    if ($this->RestKit->validOption('limit')){
-        echo "The value for 'limit' exists and is definitely numeric'";
+    if ($this->RestKit->validOption('order')){
+        echo "Value for parameter 'order' was either exactly asc or desc";
     }
 
 ** validationErrors:**

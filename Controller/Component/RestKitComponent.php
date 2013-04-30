@@ -113,21 +113,6 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 * validOption() is a conveniency function calling both hasOption() and
-	 * validateOption()and therefore will only return true if the query parameter
-	 * is both present AND passes validation.
-	 *
-	 * @param string $key with name of the query parameter (e.g. order, limit)
-	 * @return boolean
-	 */
-	public function validOption($key) {
-		if ($this->hasOption($key) && $this->validateOption($key)) {
-			return true;
-		}
-		return false;
-	}
-
-	/**
 	 * hasOption() checks the query parameters against a given keyname
 	 *
 	 * @param string $key with name of the query parameter (e.g. order, limit)
@@ -138,16 +123,38 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 * validateOption() validates the value of a query parameter against
-	 * the validation rules defined in the RestKitOption model. Validation errors
-	 * will be stored in $this->RestKit->optionValidationErrors.
+	 * validOption() validates the value of a query parameter by checking if:
+	 * - the parameter was actually passed
+	 * - a matching RestKitOption validation rule is defined in the model
+	 * - the parameter passes model validation
+	 *
+	 * Validation errors will be stored in $this->RestKit->optionValidationErrors.
 	 *
 	 * @param string $key with name of the query parameter (e.g. order, limit)
 	 * @return boolean
 	 */
-	public function validateOption($key) {
-		$optionModel = ClassRegistry::init('RestKit.RestOption'); // initialize RestOption model
-		$optionModel->set($this->controller->request->query);  // set data
+	public function validOption($key) {
+
+		if (!$this->hasOption($key)){
+			return false;
+		}
+		// initialize the Model
+		$optionModel = ClassRegistry::init('RestKit.RestOption');
+
+		// check if a validation rule exists for the given key
+		// note: this prevents devs from validating against non-existing rules
+		// which would lead to incorrectly returning true.
+		$validator = $optionModel->validator();
+		if (!$validator->getField($key)){
+			$this->validationErrors = array($key => array(
+			    "Unsupported RestKit validation"
+				)
+			);
+			return false;
+		}
+
+		// all good so validate the passed value
+		$optionModel->set($this->controller->request->query);
 		if ($optionModel->validates(array('fieldList' => array($key)))) {
 			return true;
 		}
