@@ -163,20 +163,32 @@ they will be ignored.
         <moreInfo>http://www.bravo-kernel.com/docs/errors/12004</moreInfo>
     </response>
 
-### Validating URI parameters
+### Validating query parameters
 
-Validate URI options by simply defining your default options (all others passed
-options will be ignored):
+No API is any good without support for query parameters like the following common examples:
 
-    function index() {
-        $options = $this->RestKit->parseUriOptions(array(
-            'sort' => 'asc',
-            'limit' => 10));
-        $users = $this->User->find('all');
-        $this->RestKit->render(array('users'));
+ * my.domain.com/users?order=asc
+ * my.domain.com/users?limit=10
+ * my.domain.com/users?order=asc&limit=10
+
+RestKit provides out-of-the-box validation for a set of the most commonly used query parameters
+so you can protect your API against stuff like SQL-injections and what have not.
+
+**Usage: check if a query parameter is being used:**
+
+    if ($this->RestKit->hasOption('order')){
+        echo 'Query parameter order wcontained a value';
     }
 
-RestKit supports out-of-the box validation for the following URI options
+**Usage: check if the value of the query parameter passes validation:**
+
+    if ($this->RestKit->validateOption('order')){
+        echo 'Value for parameter order contained either asc or desc;
+    }else{
+        echo 'Value for parameter order did not pass validation';
+    }
+
+Currently the following query parameters are implemented:
 
 * **sort** either asc or desc
 
