@@ -165,12 +165,13 @@ they will be ignored.
 
 ### Validating query parameters
 
-No API is any good without support for query parameters. For those unfamiliar take a look at
-the the following common examples:
+All APIs need support for query parameters so that users can manipulate the results
+using simple URL arguments. For those unfamiliar with query parameters take a look
+at the following examples:
 
- * my.domain.com/users?order=asc
- * my.domain.com/users?limit=10
- * my.domain.com/users?order=asc&limit=10
+ * my.domain.com/users**?order=asc**
+ * my.domain.com/users**?limit=10**
+ * my.domain.com/users**?order=asc&limit=10**
 
 RestKit provides out-of-the-box validation for a set of the most commonly used query parameters
 so you can protect your API against stuff like SQL-injections and what have not. Currently the following
@@ -182,7 +183,7 @@ so you can protect your API against stuff like SQL-injections and what have not.
 **hasOption():**
 
     if ($this->RestKit->hasOption('order')){
-        echo "Query parameter 'order' contained a value";
+        echo "Query parameter 'order' contains a value";
     }
 
 **validateOption():**
@@ -191,13 +192,12 @@ so you can protect your API against stuff like SQL-injections and what have not.
         echo "Value for parameter 'order' was either exactly asc or desc";
     }
 
-** validOption():**
+**validOption():**
 
-validOption() is a convenience function that calls both hasOption() and validateOption()
-so will only return true for a parameter value that exists AND passes validation.
+validOption() is a shorthand function that calls both hasOption() and validateOption().
 
     if ($this->RestKit->validOption('limit')){
-        echo "The value for 'limit' is definitely numeric'";
+        echo "The value for 'limit' exists and is definitely numeric'";
     }
 
 ** validationErrors:**
