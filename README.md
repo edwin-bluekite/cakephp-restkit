@@ -175,15 +175,16 @@ RestKit provides out-of-the-box validation for a set of the most commonly used q
 so you can protect your API against stuff like SQL-injections and what have not. Currently the following
  query parameters are implemented:
 
-* **sort** either asc or desc
+* **sort** either 'asc' or 'desc'
+* **limit** numeric
 
-**Usage: check if a query parameter is being used:**
+Check if a query parameter is being used:**
 
     if ($this->RestKit->hasOption('order')){
         echo 'Query parameter order wcontained a value';
     }
 
-**Usage: check if the value of the query parameter passes validation:**
+Check if the value of the query parameter passes validation:**
 
     if ($this->RestKit->validateOption('order')){
         echo 'Value for parameter order contained either asc or desc;
