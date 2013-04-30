@@ -192,7 +192,7 @@ If validation fails you can access the validation errors using $this->RestKit->v
     if ($this->RestKit->validateOption('order')){
         echo 'Value for parameter order contained either asc or desc;
     }else{
-        pr($this->RestKit->validationErrors();
+        pr($this->RestKit->validationErrors);
     }
 
 
