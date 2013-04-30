@@ -26,7 +26,6 @@ class RestKitComponent extends Component {
 	 */
 	public $validationErrors = array();
 
-
 	/**
 	 * initialize() is used to setup references to the the calling Controller, add
 	 * Cake Detectors and to enforce REST-only
@@ -111,6 +110,21 @@ class RestKitComponent extends Component {
 	 */
 	public function getErrors() {
 		return $this->_errors;
+	}
+
+	/**
+	 * validOption() is a conveniency function calling both hasOption() and
+	 * validateOption()and therefore will only return true if the query parameter
+	 * is both present AND passes validation.
+	 *
+	 * @param string $key with name of the query parameter (e.g. order, limit)
+	 * @return boolean
+	 */
+	public function validOption($key) {
+		if ($this->hasOption($key) && $this->validateOption($key)) {
+			return true;
+		}
+		return false;
 	}
 
 	/**

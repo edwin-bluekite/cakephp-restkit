@@ -179,23 +179,34 @@ so you can protect your API against stuff like SQL-injections and what have not.
 * **sort** allow either 'asc' or 'desc'
 * **limit** allow numeric only
 
-If validation fails you can access the validation errors using $this->RestKit->validationErrors.
-
-**Check if a query parameter is being used:**
+**hasOption():**
 
     if ($this->RestKit->hasOption('order')){
-        echo 'Query parameter order contained a value';
+        echo "Query parameter 'order' contained a value";
     }
 
-**Check if the value of the query parameter passes validation:**
+**validateOption():**
 
     if ($this->RestKit->validateOption('order')){
-        echo 'Value for parameter order was either exactly asc or desc;
-    }else{
-        pr($this->RestKit->validationErrors);
+        echo "Value for parameter 'order' was either exactly asc or desc";
     }
 
+** validOption():**
 
+validOption() is a convenience function that calls both hasOption() and validateOption()
+so will only return true for a parameter value that exists AND passes validation.
+
+    if ($this->RestKit->validOption('limit')){
+        echo "The value for 'limit' is definitely numeric'";
+    }
+
+** validationErrors:**
+
+If validation fails you can access the validation errors using $this->RestKit->validationErrors.
+
+    if (!$this->RestKit->validOption('limit')){
+        pr($this->RestKit->validationErrors);
+    }
 
 # TODO
 
