@@ -20,6 +20,14 @@ class RestKitComponent extends Component {
 	protected $controller;
 
 	/**
+	 * $validationErrors will hold validationErrors
+	 *
+	 * @var array
+	 */
+	public $validationErrors = array();
+
+
+	/**
 	 * initialize() is used to setup references to the the calling Controller, add
 	 * Cake Detectors and to enforce REST-only
 	 *
@@ -116,18 +124,21 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 * validateOption() will validate the value of a query parameter against
-	 * the validation rules defined in the RestKitOption model.
+	 * validateOption() validates the value of a query parameter against
+	 * the validation rules defined in the RestKitOption model. Validation errors
+	 * will be stored in $this->RestKit->optionValidationErrors.
 	 *
 	 * @param string $key with name of the query parameter (e.g. order, limit)
 	 * @return boolean
 	 */
 	public function validateOption($key) {
+		pr($this->controller->request->query);
 		$optionModel = ClassRegistry::init('RestKit.RestOption'); // initialize RestOption model
 		$optionModel->set($this->controller->request->query);  // set data
 		if ($optionModel->validates(array('fieldList' => array($key)))) {
 			return true;
 		}
+		$this->validationErrors = $optionModel->validationErrors;
 		return false;
 	}
 
