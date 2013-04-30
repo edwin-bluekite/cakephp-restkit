@@ -26,7 +26,11 @@ class RestOption extends RestKitAppModel {
 		'rule' => array('inList', array('asc', 'desc')),
 		'allowEmpty' => false,
 		'message' => 'Use either asc or desc'
-	    )
+	    ),
+	    'limit' => array(
+		'numeric' => array(
+		    'rule' => array('numeric'))
+	    ),
 	);
 
 }

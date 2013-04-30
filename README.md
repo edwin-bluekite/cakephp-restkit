@@ -165,7 +165,8 @@ they will be ignored.
 
 ### Validating query parameters
 
-No API is any good without support for query parameters like the following common examples:
+No API is any good without support for query parameters. For those unfamiliar take a look at
+the the following common examples:
 
  * my.domain.com/users?order=asc
  * my.domain.com/users?limit=10
@@ -175,8 +176,8 @@ RestKit provides out-of-the-box validation for a set of the most commonly used q
 so you can protect your API against stuff like SQL-injections and what have not. Currently the following
  query parameters are implemented:
 
-* **sort** either 'asc' or 'desc'
-* **limit** numeric
+* **sort** allow either 'asc' or 'desc'
+* **limit** allow numeric only
 
 Check if a query parameter is being used:**
 
@@ -204,5 +205,3 @@ Check if the value of the query parameter passes validation:**
 * add OAuth token handling (will require a separate app with OAuth server and login functionality)
 * add an extra 'exception' tag for returned error XML (requires overriding default XmlView somehow)
 * make prefixed route exclusive when enabled (making the default (direct) Cake routes to the controllers no longer available)
-* extend validations for known URI-options (or completely rethink this feature)
-* enable/disable URI-options from the config

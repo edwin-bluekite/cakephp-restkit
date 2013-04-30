@@ -20,7 +20,4 @@ $config['RestKit'] = array(
 	    666 => 'Something Very Evil',				// custom (non-standard REST!)
 	)
     ),
-
-    'enableOptionValidation' => true
-
 );
