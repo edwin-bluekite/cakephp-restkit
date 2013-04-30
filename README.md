@@ -172,7 +172,10 @@ No API is any good without support for query parameters like the following commo
  * my.domain.com/users?order=asc&limit=10
 
 RestKit provides out-of-the-box validation for a set of the most commonly used query parameters
-so you can protect your API against stuff like SQL-injections and what have not.
+so you can protect your API against stuff like SQL-injections and what have not. Currently the following
+ query parameters are implemented:
+
+* **sort** either asc or desc
 
 **Usage: check if a query parameter is being used:**
 
@@ -188,9 +191,7 @@ so you can protect your API against stuff like SQL-injections and what have not.
         echo 'Value for parameter order did not pass validation';
     }
 
-Currently the following query parameters are implemented:
 
-* **sort** either asc or desc
 
 # TODO
 
