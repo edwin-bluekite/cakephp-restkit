@@ -165,13 +165,13 @@ they will be ignored.
 
 ### Validating query parameters
 
-All APIs need support for query parameters so that users can manipulate the results
+All APIs need support for query parameters so that users can easily manipulate results
 using simple URL arguments. For those unfamiliar with query parameters take a look
 at the following examples:
 
- * my.domain.com/users**?order=asc**
- * my.domain.com/users**?limit=10**
- * my.domain.com/users**?order=asc&limit=10**
+ * my.domain.com/users?order=asc
+ * my.domain.com/users?limit=10
+ * my.domain.com/users?order=asc&limit=10
 
 RestKit provides out-of-the-box validation for a set of the most commonly used query parameters
 so you can protect your API against stuff like SQL-injections and what have not. Currently the following
