@@ -81,17 +81,6 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 * _parseUriOptions() will use passed array as default options and will validate passed URI options against the Model's validation rules
-	 *
-	 * @param type $default_options
-	 * @return type array
-	 */
-	public function parseUriOptions($default_options) {
-		$options = $this->_validateUriOptions($default_options);
-		return $options;
-	}
-
-	/**
 	 * setError() is used to buffer error-messages to be included in the response
 	 *
 	 * @param string $optionName is the exact name of the URI option (e.g. limit, sort, etc)
@@ -117,36 +106,29 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 * validateUriOptions() merges passed URI options with default options, validates them against the model and resets unvalidated options to the default value.
+	 * hasOption() checks the query parameters against a given keyname
+	 *
+	 * @param string $key with name of the query parameter (e.g. order, limit)
+	 * @return boolean
 	 */
-	private function _validateUriOptions($default_options = array()) {
+	public function hasOption($key) {
+		return array_key_exists($key, $this->controller->request->query);
+	}
 
-		// no URI parameters passed so return (and use) default values
-		if (!$this->controller->request->query) {
-			return $default_options;
+	/**
+	 * validateOption() will validate the value of a query parameter against
+	 * the validation rules defined in the RestKitOption model.
+	 *
+	 * @param string $key with name of the query parameter (e.g. order, limit)
+	 * @return boolean
+	 */
+	public function validateOption($key) {
+		$optionModel = ClassRegistry::init('RestKit.RestOption'); // initialize RestOption model
+		$optionModel->set($this->controller->request->query);  // set data
+		if ($optionModel->validates(array('fieldList' => array($key)))) {
+			return true;
 		}
-
-		// construct new arrays with keynames as used in the Model´s validation rules (e.g. option_index_limit)
-		$modelDefaults = $default_options;
-		$modelDirties = $this->controller->request->query;
-
-		// Merge values (only for dirty keys existing in $default?options)
-		$modelMerged = array_intersect_key($modelDirties + $modelDefaults, $modelDefaults);
-
-		// Set data and return the merged array if validation is instantly successfull
-		$this->Model = ClassRegistry::init('RestKit.RestOption');
-		$this->Model->set($modelMerged);
-		if ($this->Model->validates(array('fieldList' => array_keys($modelDefaults)))) {
-			return $modelMerged;
-		}
-
-		// reset non-validating fields to default values + fill the debug array
-		foreach ($this->Model->validationErrors as $key => $value) {
-			$modelMerged[$key] = $modelDefaults[$key];       // reset invalidated key
-			$key = preg_replace('/.+_/', '', $key);
-			$this->setError('optionValidation', $key, $value[0]);
-		}
-		return $modelMerged;
+		return false;
 	}
 
 	/**
