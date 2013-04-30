@@ -183,7 +183,7 @@ so you can protect your API against stuff like SQL-injections and what have not.
 **hasOption():**
 
     if ($this->RestKit->hasOption('order')){
-        echo "Query parameter 'order' contains a value";
+        echo "Query parameter 'order' exists but might not have a (valid) value";
     }
 
 **validateOption():**
