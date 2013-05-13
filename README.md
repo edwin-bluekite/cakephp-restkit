@@ -73,8 +73,8 @@ All options can be configurated by editing /app/Plugin/RestKit/Config/config.php
 
 ### JSON rendering
 
-This plugin uses Cake's JSONView so no need to create any view files as described
-perfectly here: http://api20.cakephp.org/class/json-view.
+This plugin uses custom viewless JSON and XML to render the results so no need to (ever) create any view files.
+Identical to the Cake viewless rendering as described perfectly here: http://api20.cakephp.org/class/json-view.
 
 For example code and various responses in XML and JSON see:
 
