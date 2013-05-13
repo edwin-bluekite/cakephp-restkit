@@ -8,7 +8,7 @@ This plugin is heavily under construction so do not use it unless you value your
 
 Please note:
 
-* added HAL rendering for both XML and JSON ((needs hardening)
+* added HAL rendering for both XML and JSON (misses hardening atm)
 * added Basic authentication (enable in the config, docs will follow)
 * this readme is terribly outdated, will update soon
 
@@ -47,7 +47,7 @@ Load the following components in /app/Controller/AppController.php
              'authenticate' => array(
                  'Basic' => array(
                  'fields' => array('username' => 'username')))),
-        'RestKit.RestKit');
+         'RestKit.RestKit');
 
 Enable the RestKit plugin in /app/Config/bootstrap.php:
 
@@ -76,7 +76,7 @@ All options can be configurated by editing /app/Plugin/RestKit/Config/config.php
 This plugin uses Cake's JSONView so no need to create any view files as described
 perfectly here: http://api20.cakephp.org/class/json-view.
 
-For example code and responsen see:
+For example code and various responses in XML and JSON see:
 
 * collections: https://gist.github.com/bravo-kernel/5568181
 * entities: https://gist.github.com/bravo-kernel/5568855
