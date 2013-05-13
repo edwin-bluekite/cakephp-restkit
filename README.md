@@ -163,4 +163,5 @@ If validation fails you can access the validation errors using $this->RestKit->v
 
 # Links
 
+* The HAL specification: http://stateless.co/hal_specification.html
 * REST Maturity Levels: http://martinfowler.com/articles/richardsonMaturityModel.html
