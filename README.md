@@ -71,15 +71,15 @@ All options can be configurated by editing /app/Plugin/RestKit/Config/config.php
 
 ## Usage
 
-### JSON rendering
+### JSON and XML rendering
 
 This plugin uses custom viewless JSON and XML to render the results so no need to (ever) create any view files.
 Identical to the Cake viewless rendering as described perfectly here: http://api20.cakephp.org/class/json-view.
 
 For example code and various responses in XML and JSON see:
 
-* collections: https://gist.github.com/bravo-kernel/5568181
-* entities: https://gist.github.com/bravo-kernel/5568855
+* **collections:** https://gist.github.com/bravo-kernel/5568181
+* **entities:** https://gist.github.com/bravo-kernel/5568855
 
 ### Default Exceptions
 
