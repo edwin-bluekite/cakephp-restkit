@@ -1,6 +1,6 @@
 # CakePHP RestKit plugin
 
-An attempt to create a decent JSON-only plugin for CakePHP.
+An attempt to create a half-decent plugin for an out-of-the-box HAL REST API
 
 ## Version ##
 
@@ -10,9 +10,7 @@ Please note:
 
 * added HAL rendering for both XML and JSON ((needs hardening)
 * added Basic authentication (enable in the config, docs will follow)
-* this readme is terribly outdated
-* HAL responses for collections: https://gist.github.com/bravo-kernel/5568181
-* HAL responses for entities: https://gist.github.com/bravo-kernel/5568855
+* this readme is terribly outdated, will update soon
 
 ## Features
 
@@ -76,14 +74,12 @@ All options can be configurated by editing /app/Plugin/RestKit/Config/config.php
 ### JSON rendering
 
 This plugin uses Cake's JSONView so no need to create any view files as described
-perfectly here: http://api20.cakephp.org/class/json-view. Just use something like:
+perfectly here: http://api20.cakephp.org/class/json-view.
 
-    $this->set(array('posts' => $posts, '_serialize' => 'posts'));
+For example code and responsen see:
 
-or this if you need an enclosing tag
-
-    $this->set(compact('posts', 'users', 'stuff'));
-    $this->set('_serialize', array('posts', 'users'));
+* collections: https://gist.github.com/bravo-kernel/5568181
+* entities: https://gist.github.com/bravo-kernel/5568855
 
 ### Default Exceptions
 
@@ -97,34 +93,7 @@ the 404 and 500 errors) in that the response will contain:
 * an error message reset to the description of the HTTP Status Code to prevent
 any sensitive information from becoming public
 
-**ForbiddenException() example**
-
-    <response>
-        <status>403</status>
-        <message>Forbidden</message>
-        <code>403</code>
-        <moreInfo>http:///www.bravo-kernel.com/docs/errors/403</moreInfo>
-     </response>
-
-**Programming error in debug mode**
-
-    <response>
-        <status>500</status>
-        <message>Internal Server Error</message>
-        <code>500</code>
-        <moreInfo>http:///www.bravo-kernel.com/docs/errors/500</moreInfo>
-    </response>
-
-**Programming error in non-debug mode**
-
-    <response>
-        <status>500</status>
-        <message>
-            Call to undefined method RestKitComponent::crashMe()
-        </message>
-        <code>500</code>
-        <moreInfo>http:///www.bravo-kernel.com/docs/errors/500</moreInfo>
-    </response>
+_OUTDATED EXAMPLES REMOVED TO PREVENT CONFUSION_
 
 ### RestKitExceptions
 
@@ -135,41 +104,7 @@ RestKitExceptions use HTTP Status Code 500 but you can use custom HTTP Status Co
 as well. Please note that custom HTTP Status Codes must be defined in /RestKit/Config/config.php or
 they will be ignored.
 
-**throw new RestKitException();**
-
-    <response>
-        <status>500</status>
-        <message>RestKit Error</message>
-        <code>500</code>
-        <moreInfo>http://www.bravo-kernel.com/docs/errors/500</moreInfo>
-    </response>
-
-**throw new RestKitException('Invalid Phone Number');**
-
-    <response>
-        <status>500</status>
-        <message>Invalid phone number</message>
-        <code>500</code>
-        <moreInfo>http://www.bravo-kernel.com/docs/errors/500</moreInfo>
-    </response>
-
-**throw new RestKitException('Invalid Phone Number', 666);**
-
-    <response>
-        <status>666</status>
-        <message>Invalid phone number</message>
-        <code>666</code>
-        <moreInfo>http://www.bravo-kernel.com/docs/errors/666</moreInfo>
-    </response>
-
-**throw new RestKitException('Invalid Phone Number', 12004);**
-
-    <response>
-        <status>500</status>
-        <message>Invalid phone number</message>
-        <code>12004</code>
-        <moreInfo>http://www.bravo-kernel.com/docs/errors/12004</moreInfo>
-    </response>
+_OUTDATED EXAMPLES REMOVED TO PREVENT CONFUSION_
 
 ### Validating query parameters
 
