@@ -59,7 +59,7 @@ class RestKitComponent extends Component {
 	 * @return void
 	 */
 	protected function setup(Controller $controller) {
-		self::_forceJSON();   // return 404s for all non-JSON calls
+		//self::_forceJSON();   // return 404s for all non-JSON calls
 		// allow public access to everything when 'Authenticate' is set to false in the config file
 		if (Configure::read('RestKit.Authenticate') == false) {
 			$this->controller->Auth->allow();
@@ -135,7 +135,7 @@ class RestKitComponent extends Component {
 	 */
 	public function validOption($key) {
 
-		if (!$this->hasOption($key)){
+		if (!$this->hasOption($key)) {
 			return false;
 		}
 		// initialize the Model
@@ -145,10 +145,10 @@ class RestKitComponent extends Component {
 		// note: this prevents devs from validating against non-existing rules
 		// which would lead to incorrectly returning true.
 		$validator = $optionModel->validator();
-		if (!$validator->getField($key)){
+		if (!$validator->getField($key)) {
 			$this->validationErrors = array($key => array(
-			    "Unsupported RestKit validation"
-				)
+				"Unsupported RestKit validation"
+			    )
 			);
 			return false;
 		}
