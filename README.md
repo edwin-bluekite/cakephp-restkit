@@ -36,7 +36,12 @@ Make sure the Exception class is loaded /app/Controller/AppController.php:
 Load the following components in /app/Controller/AppController.php
 
     public $components = array(
-        'RequestHandler',
+	    'RequestHandler' => array(
+		'viewClassMap' => array(
+		    'json' => 'RestKit.RestKitJson',
+		    'xml' => 'RestKit.RestKitXml',
+		)
+	    ),
 	 'Auth' => array(
              'authenticate' => array(
                  'Basic' => array(
