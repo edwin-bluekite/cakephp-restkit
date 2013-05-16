@@ -38,8 +38,11 @@ class RestKitView extends View {
 	 */
 	public function __construct(Controller $controller = null) {
 		parent::__construct($controller);
-		$this->modelClass = Inflector::singularize(current($this->viewVars['_serialize']));
-		$this->rootKey = current($this->viewVars['_serialize']);
+
+		if (!isset($this->viewVars['Exception'])){
+			$this->modelClass = Inflector::singularize(current($this->viewVars['_serialize']));
+			$this->rootKey = current($this->viewVars['_serialize']);
+		}
 	}
 
 	/**
@@ -52,6 +55,11 @@ class RestKitView extends View {
 	 * @return string The rendered view.
 	 */
 	public function render($view = null, $layout = null) {
+
+		// Exceptions are serialized differently
+		if (isset($this->viewVars['Exception'])){
+			return $this->_serializeException($this->viewVars['Exception']);
+		}
 
 		// merge passed options
 		if (isset($this->viewVars['options'])) {

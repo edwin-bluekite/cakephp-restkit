@@ -113,4 +113,30 @@ class RestKitJsonView extends RestKitView {
 		return array('href' => $url);
 	}
 
+	/**
+	 * _serializeException() generates an error.vnd response as described at
+	 * https://github.com/blongden/vnd.error.
+	 *
+	 * Note: $data is prepared in the RestKitExceptionRenderer
+	 *
+	 *
+	 * @param type $data
+	 * @return type
+	 */
+	protected function _serializeException($data) {
+
+		$out = array();
+		foreach ($data as $error) {
+			$temp = array();
+			$temp['logRef'] = $error['logRef'];
+			$temp['message'] = $error['message'];
+			$temp['_links'] = array();
+			foreach ($error['links'] as $key => $pair) {
+				array_push($temp['_links'], array($key => $pair));
+			}
+			array_push($out, $temp);
+		}
+		return json_encode(array('errors' => $out));
+	}
+
 }

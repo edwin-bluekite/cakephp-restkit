@@ -103,50 +103,72 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 		$code = $error->getCode();
 		$message = $this->_getRichErrorMessage($error);
 
+
+		// generate unique logRef
+		$logRef = Security::hash($code . $message, 'sha1', false);
+
+		// TODO: add database automated logging logic here
+		// TODO: add support for multiple errors (array_push)
+		$exception['Exception'] = array();
+		array_push($exception['Exception'], array(
+			    'logRef' => $logRef,
+			    'message' => $message,
+			    'links' => array(
+				'help' => array(
+				    'href' => "http://my.api.com/help/$logRef",
+				    'title' => 'Error information'
+				),
+				'describedBy' => array(
+				    'href' => "http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html",
+				    'title' => 'W3C Status Code Definitions'
+				)
+		)));
+
+		// set up viewVar 'Exception' so that RestKitJsonView and RestKitXmlView will
+		// detect it and will use _serializeException() instead of default _serialize()
+		$this->controller->set($exception);
+
 		// set the correct response header
 		$this->_setHttpResponseHeader($code);
 
+
 		// set variables for both view- and viewless JSON/XML
-		$setVars = array(
-		    'name' => $message,
-		    'url' => $url,
-		    'status' => $code,
-		    'message' => $message,
-		    'code' => $error->getCode(),
-		    'moreInfo' => $this->_getMoreInfo($error->getCode()),
-		);
-
+//		$setVars = array(
+//		    'name' => $message,
+//		    'url' => $url,
+//		    'status' => $code,
+//		    'message' => $message,
+//		    'code' => $error->getCode(),
+//		    'moreInfo' => $this->_getMoreInfo($error->getCode()),
+//		);
 		// add debug-info when needed
-		if (Configure::read('debug') > 0) {
-			$setVars['debug'] = array(
-			    'file' => $error->getFile(),
-			    'line' => $error->getLine()
-			);
-		}
-
+//		if (Configure::read('debug') > 0) {
+//			$setVars['debug'] = array(
+//			    'file' => $error->getFile(),
+//			    'line' => $error->getLine()
+//			);
+//		}
 		// add required CakeException object
-		$setVars['error'] = $error;
-
+//		$setVars['error'] = $error;
 		// set view vars and serialize
-		$this->controller->set($setVars);
-
+//		$this->controller->set($setVars);
 		// serialize in order of appearance
-		if (Configure::read('debug') == 0) {
-			$this->controller->set(array('_serialize' => array(
-				'status',
-				'message',
-				'code',
-				'moreInfo'
-				)));
-		} else {
-			$this->controller->set(array('_serialize' => array(
-				'status',
-				'message',
-				'code',
-				'moreInfo',
-				'debug'
-				)));
-		}
+//		if (Configure::read('debug') == 0) {
+//			$this->controller->set(array('_serialize' => array(
+//				'status',
+//				'message',
+//				'code',
+//				'moreInfo'
+//				)));
+//		} else {
+//			$this->controller->set(array('_serialize' => array(
+//				'status',
+//				'message',
+//				'code',
+//				'moreInfo',
+//				'debug'
+//				)));
+//		}
 	}
 
 	/**
