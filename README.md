@@ -1,15 +1,15 @@
 # CakePHP RestKit plugin
 
-An attempt to create a full featured plug-and-play HAL REST API
+A plugin that will instantly turn your app into a full featured HAL REST API
 
 ## Version ##
 
 This plugin is still heavily under construction so do not use it unless you value your production environment ;)
 
-Features:
+**Features:**
 
-* REST Maturity Level 3 response rendering (using HAL specification)
-* Rich exception rendering using (HAL compatible) vnd.error specification
+* REST Maturity Level 3 (using HAL specification)
+* Rich exception rendering (HAL compatible vnd.error specification)
 * Basic authentication (enable in the config, docs will follow)
 * Custom HTTP Status Codes
 * Validation rules for query parameters
