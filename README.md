@@ -1,6 +1,6 @@
 # CakePHP RestKit plugin
 
-A full-featured plug-and-play stateless HAL REST API
+An attempt to create a full featured plug-and-play HAL REST API
 
 ## Version ##
 
