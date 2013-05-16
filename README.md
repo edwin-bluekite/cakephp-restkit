@@ -73,8 +73,8 @@ Identical to the Cake viewless rendering as described perfectly here: http://api
 
 For example code and various responses in HAL-XML and HAL-JSON see:
 
-* **collections:** https://gist.github.com/bravo-kernel/5568181
-* **entities:** https://gist.github.com/bravo-kernel/5568855
+* **listing collections:** https://gist.github.com/bravo-kernel/5568181
+* **viewing entities:** https://gist.github.com/bravo-kernel/5568855
 
 ### Default Exceptions
 
