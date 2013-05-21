@@ -1,6 +1,6 @@
 <?php
 
-App::uses('RestKitException', 'RestKit.Lib');
+App::uses('RestKitException', 'RestKit.Lib/Error');
 App::uses('RestKitErrorHandler', 'RestKit.Lib/Error');
 
 // We need to load our config file here because initializing it from the App's bootstrap.php

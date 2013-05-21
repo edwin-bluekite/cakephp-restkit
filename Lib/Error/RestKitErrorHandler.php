@@ -40,7 +40,7 @@ class RestKitErrorHandler extends ErrorHandler {
 			    'error' => $error,
 			    'message' => htmlspecialchars($description),
 			);
-		}else{
+		} else {
 			$data = array(
 			    'level' => $log,
 			    'code' => $code,
@@ -64,6 +64,41 @@ class RestKitErrorHandler extends ErrorHandler {
 		$exceptionHandler = Configure::read('Exception.handler');
 		call_user_func($exceptionHandler, new FatalErrorException(serialize($data), 500, $file, $line));
 		die();
+	}
+
+	/**
+	 * Set as the default exception handler by the CakePHP bootstrap process.
+	 *
+	 * This will either use custom exception renderer class if configured,
+	 * or use the default ExceptionRenderer.
+	 *
+	 * @param Exception $exception
+	 * @return void
+	 * @see http://php.net/manual/en/function.set-exception-handler.php
+	 */
+	public static function handleException(Exception $exception) {
+
+		$config = Configure::read('Exception');
+		self::_log($exception, $config);
+
+
+
+		$renderer = isset($config['renderer']) ? $config['renderer'] : 'ExceptionRenderer';
+		if ($renderer !== 'ExceptionRenderer') {
+			list($plugin, $renderer) = pluginSplit($renderer, true);
+			App::uses($renderer, $plugin . 'Error');
+		}
+		try {
+			$error = new $renderer($exception);
+			$error->render();
+		} catch (Exception $e) {
+			set_error_handler(Configure::read('Error.handler')); // Should be using configured ErrorHandler
+			Configure::write('Error.trace', false); // trace is useless here since it's internal
+			$message = sprintf("[%s] %s\n%s", // Keeping same message format
+				get_class($e), $e->getMessage(), $e->getTraceAsString()
+			);
+			trigger_error($message, E_USER_ERROR);
+		}
 	}
 
 }
