@@ -23,7 +23,7 @@ The RestKit plugin requires CakePHP 2.4 or higher
 
 Clone the repository into /app/Plugin/RestKit:
 
-     git submodule add git://github.com/bravo-kernel/cakephp-restkit.git Plugin/RestKit
+     git submodule add git://github.com/alt3/cakephp-restkit.git
 
 Load the following components in /app/Controller/AppController.php
 
