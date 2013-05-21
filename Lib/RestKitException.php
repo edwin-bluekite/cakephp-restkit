@@ -20,6 +20,10 @@ class RestKitException extends CakeException {
 		if (empty($message)) {
 			$message = 'RestKit Error';
 		}
+		$this->attributes = array('Exception' => array(
+		   'snoop' => 'rob',
+		    'mad' => 'dog'
+		));
 		parent::__construct($message, $code);
 	}
 

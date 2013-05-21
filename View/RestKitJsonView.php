@@ -125,14 +125,20 @@ class RestKitJsonView extends RestKitView {
 	 */
 	protected function _serializeException($data) {
 
+		$debug = Configure::read('debug');
 		$out = array();
+
 		foreach ($data as $error) {
-			$temp = array();
-			$temp['logRef'] = $error['logRef'];
-			$temp['message'] = $error['message'];
-			$temp['_links'] = array();
-			foreach ($error['links'] as $key => $pair) {
-				array_push($temp['_links'], array($key => $pair));
+			if ($debug == 0) {
+				$temp = array();
+				$temp['logRef'] = $error['logRef'];
+				$temp['message'] = $error['message'];
+				$temp['_links'] = array();
+				foreach ($error['links'] as $key => $pair) {
+					array_push($temp['_links'], array($key => $pair));
+				}
+			} else {
+				$temp['debug'] = $error['debug'];
 			}
 			array_push($out, $temp);
 		}

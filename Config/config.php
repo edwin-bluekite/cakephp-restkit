@@ -10,8 +10,11 @@ $config['RestKit'] = array(
 
     'Authenticate' => true,						// turn on/off Basic authentication using Cake AuthComponent
 
+    'Documentation' => array(
+	'errors' => 'http://www.bravo-kernel.com/docs/errors',		// full URL pointing to your API error documentation
+    ),
+
     'Response' => array(
-	'moreInfo' => 'http://www.bravo-kernel.com/docs/errors',	// base URL pointing to your API error documentation
 	'statusCodes' => array(						// override or append the default CakePHP HTTP Status Codes
 	    428 => 'Precondition Required',				// proposed draft
 	    429 => 'Too Many Requests',					// proposed draft

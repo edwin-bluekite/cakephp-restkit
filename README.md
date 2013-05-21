@@ -25,10 +25,6 @@ Clone the repository into /app/Plugin/RestKit:
 
      git submodule add git://github.com/bravo-kernel/cakephp-restkit.git Plugin/RestKit
 
-Make sure the Exception class is loaded /app/Controller/AppController.php:
-
-    App::uses('RestKitException', 'Plugin/RestKit/Lib/Error/Exception');
-
 Load the following components in /app/Controller/AppController.php
 
     public $components = array(
@@ -136,7 +132,7 @@ If validation fails you can access the validation errors using $this->RestKit->v
 # TODO/MIGHT
 
 * version prefixing (e.g. /v1/)
-* automatich error and help pages
+* automagic error and help pages
 * add debug information to Exceptions
 * make default RestKit HTTP Status Code description a configuration option
 * normalize html error responses (now share REST logic)

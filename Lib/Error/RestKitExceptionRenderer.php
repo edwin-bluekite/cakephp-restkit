@@ -41,20 +41,28 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 * return void
 	 */
 	public function restKit(RestKitException $error) {
+		pr("_cakeError is of class: " . get_class($error) . "\n");
+		pr("DATA BELOW:\n");
+		$serialized = $error->getMessage();
+		echo "\n\n$serialized";
+		$unserialized = unserialize($serialized);
+		pr($unserialized);
+		die();
 
 		$this->_setRichErrorInformation($error);
-		$this->_outputMessage('restkit');  // this will make sure restkit.ctp is used
+		$this->_outputMessage($this->template);  // make sure RestKitView is used
 	}
 
 	/**
 	 * _cakeError() overrides the default Cake function so we can respond with rich XML/JSON errormessages
 	 *
+	 *
+	 * @note DONE (TESTED SUCCESSFULLY)
 	 * @param CakeException $error
 	 * @return void
 	 */
 	protected function _cakeError(CakeException $error) {
 		$this->_setRichErrorInformation($error);
-		$this->controller->set($error->getAttributes());
 		$this->_outputMessage($this->template);
 	}
 
@@ -65,6 +73,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 * @return void
 	 */
 	public function error400($error) {
+		pr("Exception is of class: " . get_class($error) . "\n");
 		$this->_setRichErrorInformation($error);
 		$this->_outputMessage('error400');
 	}
@@ -76,6 +85,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 * @return void
 	 */
 	public function error500($error) {
+		pr("Exception is of class: " . get_class($error) . "\n");
 		$this->_setRichErrorInformation($error);
 		$this->_outputMessage('error500');
 	}
@@ -90,119 +100,47 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 * Also note that we set $name and $url here even though they are not used for JSON/XML because
 	 * they are required by the default HTML error-views.
 	 *
-	 * @todo add a check to detect REST or HTML so we can fill the REST errors with more meaningfull
-	 * messages in production environments. Simply put: 'not found' will now appear in the REST response
-	 * even though Access Denied would be better (also keeping the moreInfo link in mind).
+	 * @todo add support for multiple errors !!!!
 	 *
 	 * @param CakeException $error
 	 */
 	private function _setRichErrorInformation($error) {
 
-		// set up variables
-		$url = $this->controller->request->here();
-		$code = $error->getCode();
-		$message = $this->_getRichErrorMessage($error);
+		// normalize passed array with error-information
+		$errorData = unserialize($error->getMessage());
 
+		// prepare view-data
+		$debug = Configure::read('debug');
+		if ($debug == 0) {
 
-		// generate unique logRef
-		$logRef = Security::hash($code . $message, 'sha1', false);
+			// get variables
+			$vndHash = $this->_getVndErrorHash($errorData['code'], $errorData['description']);
+			$vndIds = $this->_getVndErrorIds($vndHash);  //
+			$vndErrorId = $vndIds['error'];
+			$vndErrorHelpId = $vndIds['help'];
 
-		// TODO: add database automated logging logic here
-		// TODO: add support for multiple errors (array_push)
-		$exception['Exception'] = array();
-		array_push($exception['Exception'], array(
-			    'logRef' => $logRef,
-			    'message' => $message,
+			$viewData = array(
+			    'logRef' => $vndErrorId,
+			    'message' => $errorData['description'],
 			    'links' => array(
 				'help' => array(
-				    'href' => "http://my.api.com/help/$logRef",
+				    'href' => Configure::read('RestKit.Documentation.errors') . '/' . $vndErrorHelpId,
 				    'title' => 'Error information'
-				),
-				'describedBy' => array(
-				    'href' => "http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html",
-				    'title' => 'W3C Status Code Definitions'
-				)
-		)));
+			)));
 
-		// set up viewVar 'Exception' so that RestKitJsonView and RestKitXmlView will
+		} else {
+			$errorData['class'] = get_class($error);	// adding the calling error/exception class seems useful
+			$viewData['debug'] = $errorData;		// only pass debug info to the RestKitView
+		}
+
+		// set up the 'Exception' viewVar so that RestKitJsonView and RestKitXmlView will
 		// detect it and will use _serializeException() instead of default _serialize()
+		$exception['Exception'] = array();
+		array_push($exception['Exception'], $viewData);
 		$this->controller->set($exception);
 
 		// set the correct response header
-		$this->_setHttpResponseHeader($code);
-
-
-		// set variables for both view- and viewless JSON/XML
-//		$setVars = array(
-//		    'name' => $message,
-//		    'url' => $url,
-//		    'status' => $code,
-//		    'message' => $message,
-//		    'code' => $error->getCode(),
-//		    'moreInfo' => $this->_getMoreInfo($error->getCode()),
-//		);
-		// add debug-info when needed
-//		if (Configure::read('debug') > 0) {
-//			$setVars['debug'] = array(
-//			    'file' => $error->getFile(),
-//			    'line' => $error->getLine()
-//			);
-//		}
-		// add required CakeException object
-//		$setVars['error'] = $error;
-		// set view vars and serialize
-//		$this->controller->set($setVars);
-		// serialize in order of appearance
-//		if (Configure::read('debug') == 0) {
-//			$this->controller->set(array('_serialize' => array(
-//				'status',
-//				'message',
-//				'code',
-//				'moreInfo'
-//				)));
-//		} else {
-//			$this->controller->set(array('_serialize' => array(
-//				'status',
-//				'message',
-//				'code',
-//				'moreInfo',
-//				'debug'
-//				)));
-//		}
-	}
-
-	/**
-	 * _getRichErrorMessage() is used to return the appropriate error-message.
-	 *
-	 * When debug=0 all error messages (except those of type RestKitException)
-	 * will be reset to the corresponding HTTP Status Code as found in
-	 * CakeResponse::httpCodes() to prevent sensitive information appearing
-	 * to the public.
-	 *
-	 * For CakeExceptions we retrieve the message using $error->getMessage().
-	 * For RestKitExceptions we retrieve the message using:
-	 * - either $error->getMessage() when the exception was declared using the shortcut form
-	 * - or by parsing the $error->getAttributes() array if the exception was declared using the options array
-	 *
-	 * @param $error
-	 * @return string
-	 */
-	private function _getRichErrorMessage($error) {
-
-		// non-debug mode so set the CakeException message to the HTTP Status Code description
-		if (Configure::read('debug') == 0 && (!$error instanceof RestKitException)) {
-			$message = $this->controller->response->httpCodes($error->getCode());
-			$message = $message[$error->getCode()];
-			return $message;
-		}
-
-		// debug mode so show the full message
-		$message = h($error->getMessage());
-		if ($error instanceof RestKitException && (!$message)) { // option-array passed
-			$attributes = $error->getAttributes();
-			$message = $attributes['message'];
-		}
-		return $message;
+		$this->_setHttpResponseHeader($errorData['code']);
 	}
 
 	/**
@@ -244,6 +182,62 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	private function _getMoreInfo($code) {
 		$moreInfo = Configure::read('RestKit.Response.moreInfo') . '/' . $code;
 		return $moreInfo;
+	}
+
+	/**
+	 * _getVndErrorHash() generates a hash to uniquely identify vnd.errors using a
+	 * concatenation of both error-code and error-message
+	 *
+	 * @param int $code
+	 * @param string $message
+	 * @return string unique MD5 hash
+	 */
+	private function _getVndErrorHash($code, $message) {
+		return Security::hash($code . $message, 'md5', false);
+	}
+
+	/**
+	 * _getVndErrorIds() return the database ids for VndError and associated VndErrorHelp
+	 *
+	 * If no existing records are found, they will be created
+	 *
+	 * @todo: prevent breaking when the VndErrorHelp save() fails
+	 * @param type $hash
+	 * @return array
+	 */
+	private function _getVndErrorIds($hash) {
+
+		// see if the vndError
+		$this->VndError = ClassRegistry::init('RestKit.VndError');
+		$result = $this->VndError->find('first', array(
+		    'conditions' => array(
+			'VndError.hash' => $vndHash),
+		    'contain' => array('VndErrorHelp')
+		));
+
+		// existing error: return IDs
+		if ($result) {
+			return array(
+			    'error' => $result['VndError']['id'],
+			    'help' => $result['VndErrorHelp']['id']
+			);
+		}
+
+		// new error: create vndError with associated vndErrorHelp
+		$result = $this->VndError->save(array(
+		    'status_code' => $errorData['code'],
+		    'message' => $errorData['description'],
+		    'hash' => $hash
+		));
+		if (!empty($result)) {
+			$data['VndErrorHelp']['vnd_error_id'] = $this->VndError->id;
+			$this->VndError->VndErrorHelp->save($data);
+
+			return array(
+			    'error' => $this->VndError->id,
+			    'help' => $this->VndError->VndErrorHelp->id
+			);
+		}
 	}
 
 }
