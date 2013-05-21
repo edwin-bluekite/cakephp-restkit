@@ -38,14 +38,14 @@ class RestKitErrorHandler extends ErrorHandler {
 			$data = array(
 			    'code' => 500,
 			    'error' => $error,
-			    'description' => htmlspecialchars($description),
+			    'message' => htmlspecialchars($description),
 			);
 		}else{
 			$data = array(
 			    'level' => $log,
 			    'code' => $code,
 			    'error' => $error,
-			    'description' => htmlspecialchars($description),
+			    'message' => htmlspecialchars($description),
 			    'file' => $file,
 			    'line' => $line,
 			    'context' => htmlspecialchars($context),

@@ -41,13 +41,13 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 * return void
 	 */
 	public function restKit(RestKitException $error) {
-		pr("_cakeError is of class: " . get_class($error) . "\n");
-		pr("DATA BELOW:\n");
-		$serialized = $error->getMessage();
-		echo "\n\n$serialized";
-		$unserialized = unserialize($serialized);
-		pr($unserialized);
-		die();
+//		pr("_cakeError is of class: " . get_class($error) . "\n");
+//		pr("DATA BELOW:\n");
+//		$serialized = $error->getMessage();
+//		echo "\n\n$serialized";
+//		$unserialized = unserialize($serialized);
+//		pr($unserialized);
+//		die();
 
 		$this->_setRichErrorInformation($error);
 		$this->_outputMessage($this->template);  // make sure RestKitView is used
@@ -114,14 +114,14 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 		if ($debug == 0) {
 
 			// get variables
-			$vndHash = $this->_getVndErrorHash($errorData['code'], $errorData['description']);
+			$vndHash = $this->_getVndErrorHash($errorData['code'], $errorData['message']);
 			$vndIds = $this->_getVndErrorIds($vndHash);  //
 			$vndErrorId = $vndIds['error'];
 			$vndErrorHelpId = $vndIds['help'];
 
 			$viewData = array(
 			    'logRef' => $vndErrorId,
-			    'message' => $errorData['description'],
+			    'message' => $errorData['message'],
 			    'links' => array(
 				'help' => array(
 				    'href' => Configure::read('RestKit.Documentation.errors') . '/' . $vndErrorHelpId,
@@ -226,7 +226,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 		// new error: create vndError with associated vndErrorHelp
 		$result = $this->VndError->save(array(
 		    'status_code' => $errorData['code'],
-		    'message' => $errorData['description'],
+		    'message' => $errorData['message'],
 		    'hash' => $hash
 		));
 		if (!empty($result)) {
