@@ -107,11 +107,31 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 * @param CakeException $error
 	 * @return void
 	 */
-	public function error500DIS($error) {
-		pr("Exception is of class: " . get_class($error) . "\n");
-		$this->_setRichErrorInformation($error);
-		$this->_outputMessage('error500');
+	public function error500($error) {
+
+		if($this->controller->RestKit->isRest){
+			$this->_setRichErrorInformation($error);
+			$this->_outputMessage('RestKit');
+		}else{
+
+			$message = $error->getMessage();
+			if (!Configure::read('debug')) {
+				$message = __d('cake', 'An Internal Error Has Occurred.');
+			}
+			$url = $this->controller->request->here();
+			$code = ($error->getCode() > 500 && $error->getCode() < 506) ? $error->getCode() : 500;
+			$this->controller->response->statusCode($code);
+			$this->controller->set(array(
+				'name' => h($message),
+				'message' => h($url),
+				'error' => $error,
+				'_serialize' => array('name', 'message')
+			));
+			$this->_outputMessage('error500');
+		}
 	}
+
+
 
 	/**
 	 * _setRichErrorInformation() is used to set up extra variables required for producing
@@ -129,37 +149,33 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 */
 	private function _setRichErrorInformation($error) {
 
+		// respond differently when in debug mode
+		$debug = Configure::read('debug');
+
 		// normalize passed array with error-information
 		$errorData = json_decode($error->getMessage(), true);	// pass true to generate an associative array
 
-		//try {
-		//	$errorData = unserialize($error->getMessage());
-		//} catch (ErrorException $e) {
-		//	pr("SOMETHING WENT WRONG, GENERATE PLAIN ARRAY");
-		//}
+		// if no rich error info was passed (eg for RuntimeExceptions, construct it ourselves)
+		if(!is_array($errorData)){
+			$errorData['message'] = $error->getMessage();
+			$errorData['code'] = $error->getCode();
+			if($debug){
+				$errorData['file'] = $error->getFile();
+				$errorData['line'] = $error->getLine();
+				$errorData['trace'] = $error->getTraceAsString();
+			}
+		}
 
-
-
-
-//		pr("before");
-//		pr(error_get_last());
-//		pr("after");
-		// prepare view-data
-		$debug = Configure::read('debug');
 		if ($debug == 0) {
 
 			// get variables
-			$vndHash = $this->_getVndErrorHash($errorData['code'], $errorData['message']);
-			$vndIds = $this->_getVndErrorIds($vndHash);  //
-			$vndErrorId = $vndIds['error'];
-			$vndErrorHelpId = $vndIds['help'];
-
+			$vndData = $this->_getVndData($errorData);
 			$viewData = array(
-			    'logRef' => $vndErrorId,
+			    'logRef' => $vndData['error_id'],
 			    'message' => $errorData['message'],
 			    'links' => array(
 				'help' => array(
-				    'href' => Configure::read('RestKit.Documentation.errors') . '/' . $vndErrorHelpId,
+				    'href' => Configure::read('RestKit.Documentation.errors') . '/' . $vndData['help_id'],
 				    'title' => 'Error information'
 			)));
 		} else {
@@ -198,6 +214,29 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 
 
 	/**
+	 * getVndData() is a convenience function to retrieve .....
+	 *
+	 * @param type $errorData
+	 * @return type
+	 */
+	private function _getVndData($errorData){
+		$out['hash'] = $this->_getVndErrorHash($errorData['code'], $errorData['message']);
+
+		$vndIds = $this->_getVndErrorIds($out['hash']);
+		if ($vndIds){
+			$out['error_id'] = $vndIds['error_id'];
+			$out['help_id'] = $vndIds['help_id'];
+		}else{
+			$result = $this->_saveVndError($out['hash'], $errorData['code'], $errorData['message']);
+			$out['error_id'] = $result['error_id'];
+			$out['help_id'] = $result['help_id'];
+		}
+		return $out;
+	}
+
+
+
+	/**
 	 * _getVndErrorHash() generates a hash to uniquely identify vnd.errors using a
 	 * concatenation of both error-code and error-message
 	 *
@@ -224,31 +263,45 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 		$this->VndError = ClassRegistry::init('RestKit.VndError');
 		$result = $this->VndError->find('first', array(
 		    'conditions' => array(
-			'VndError.hash' => $vndHash),
+			'VndError.hash' => $hash),
 		    'contain' => array('VndErrorHelp')
 		));
 
 		// existing error: return IDs
 		if ($result) {
 			return array(
-			    'error' => $result['VndError']['id'],
-			    'help' => $result['VndErrorHelp']['id']
+			    'error_id' => $result['VndError']['id'],
+			    'help_id' => $result['VndErrorHelp']['id']
 			);
 		}
+		return false;
+	}
 
-		// new error: create vndError with associated vndErrorHelp
+	/**
+	 * _saveVndError() creates a new VndError and associated VndErrorHelp
+	 *
+	 * @todo harden failed saves!!!
+	 *
+	 * @param type $hash (MD5 hash of concatenated $code.$message)
+	 * @param type $code
+	 * @param type $message
+	 * @return type
+	 */
+	private function _saveVndError($hash, $code, $message){
+
 		$result = $this->VndError->save(array(
-		    'status_code' => $errorData['code'],
-		    'message' => $errorData['message'],
-		    'hash' => $hash
+		    'hash' => $hash,
+		    'status_code' => $code,	//$errorData['code'],
+		    'message' => $message		//$errorData['message'],
 		));
+
 		if (!empty($result)) {
 			$data['VndErrorHelp']['vnd_error_id'] = $this->VndError->id;
 			$this->VndError->VndErrorHelp->save($data);
 
 			return array(
-			    'error' => $this->VndError->id,
-			    'help' => $this->VndError->VndErrorHelp->id
+			    'error_id' => $this->VndError->id,
+			    'help_id' => $this->VndError->VndErrorHelp->id
 			);
 		}
 	}
