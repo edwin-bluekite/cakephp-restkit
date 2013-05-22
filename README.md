@@ -17,7 +17,8 @@ This plugin is still heavily under construction so do not use it unless you valu
 
 ## Requirements
 
-The RestKit plugin requires CakePHP 2.4 or higher
+* CakePHP 2.4 or higher
+* CakeDC Migrations plugin
 
 ## Installation
 
@@ -50,6 +51,10 @@ Enable the RestKit plugin in /app/Config/bootstrap.php:
 Disable CakePHP default routing in /app/Config/routes.php:
 
     //require CAKE . 'Config' . DS . 'routes.php';
+
+Run the migration to create the required tables
+
+    ./cake Migrations.migration run all -app /var/www/yourapp --plugin RestKit
 
 
 # Documentation

@@ -171,7 +171,8 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 		$debug = Configure::read('debug');
 
 		// normalize passed array with error-information
-		$errorData = json_decode($error->getMessage(), true); // pass true to generate an associative array
+		$errorData = json_decode($error->getMessage(), true);
+
 		// if no rich error info was passed (eg for RuntimeExceptions, construct it ourselves)
 		if (!is_array($errorData)) {
 			$errorData['message'] = $error->getMessage();
@@ -183,7 +184,16 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 			}
 		}
 
+		// Handle debug/non-debug mode differently
 		if ($debug == 0) {
+
+			// reset message in non-production mode
+			if ($errorData['code'] == 404) {
+				$errorData['message'] = 'Not Found';
+			}
+			if ($errorData['code'] == 500) {
+				$errorData['message'] = 'An Internal Error Has Occurred';
+			}
 
 			// get variables
 			$vndData = $this->_getVndData($errorData);
