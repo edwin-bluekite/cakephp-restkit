@@ -20,57 +20,6 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	public $error = null;
 	public $method = '';
 
-/**
- * Creates the controller to perform rendering on the error response.
- * If the error is a CakeException it will be converted to either a 400 or a 500
- * code error depending on the code used to construct the error.
- *
- * @param Exception $exception Exception
- * @return mixed Return void or value returned by controller's `appError()` function
- */
-	public function __construct(Exception $exception) {
-		$this->controller = $this->_getController($exception);
-
-		if (method_exists($this->controller, 'apperror')) {
-			return $this->controller->appError($exception);
-		}
-		$method = $template = Inflector::variable(str_replace('Exception', '', get_class($exception)));
-		$code = $exception->getCode();
-
-		$methodExists = method_exists($this, $method);
-
-		if ($exception instanceof CakeException && !$methodExists) {
-			$method = '_cakeError';
-			if (empty($template) || $template === 'internalError') {
-				$template = 'error500';
-			}
-		} elseif ($exception instanceof PDOException) {
-			$method = 'pdoError';
-			$template = 'pdo_error';
-			$code = 500;
-		} elseif (!$methodExists) {
-			$method = 'error500';
-			if ($code >= 400 && $code < 500) {
-				$method = 'error400';
-			}
-		}
-
-		$isNotDebug = !Configure::read('debug');
-		if ($isNotDebug && $method === '_cakeError') {
-			$method = 'error400';
-		}
-		if ($isNotDebug && $code == 500) {
-			$method = 'error500';
-		}
-		$this->template = $template;
-		$this->method = $method;
-		$this->error = $exception;
-	}
-
-
-
-
-
 
 	/**
 	 * _getController() is an override of the default Cake method (in subclasses) and is used
