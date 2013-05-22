@@ -28,7 +28,7 @@ class RestKitErrorHandler extends ErrorHandler {
 		if (error_reporting() === 0) {
 			return false;
 		}
-		$errorConfig = Configure::read('Error');
+
 		list($error, $log) = self::mapErrorCode($code);
 		if ($log === LOG_ERR) {
 			return self::handleFatalError($code, $description, $file, $line);
@@ -48,7 +48,6 @@ class RestKitErrorHandler extends ErrorHandler {
 			    'line' => $line,
 			    'level' => $log,
 			    'code' => $code,
-			    'context' => htmlspecialchars($context),
 			    'path' => Debugger::trimPath($file),
 			    'trace' => htmlspecialchars(Debugger::trace(array('start' => 1, 'format' => 'log')))
 			);
