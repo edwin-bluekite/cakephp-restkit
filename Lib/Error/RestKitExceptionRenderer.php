@@ -12,6 +12,7 @@ App::uses('CakeErrorController', 'Controller');
 App::uses('RestKitErrorHandler', 'RestKit.Lib/Error');
 App::uses('Controller', 'Controller');
 App::uses('RestKitComponent', 'RestKit.Controller/Component');
+App::uses('CakeLog', 'Log');
 
 class RestKitExceptionRenderer extends ExceptionRenderer {
 
@@ -19,7 +20,6 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	public $template = '';
 	public $error = null;
 	public $method = '';
-
 
 	/**
 	 * _getController() is an override of the default Cake method (in subclasses) and is used
@@ -70,19 +70,20 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 */
 	protected function _cakeError(CakeException $error) {
 
-		if($this->controller->RestKit->isRest){
+		CakeLog::write('error', 'RestKitExceptionRenderer: entered _cakeError');
+		if ($this->controller->RestKit->isRest) {
 			$this->_setRichErrorInformation($error);
 			$this->_outputMessage($this->template);
-		}else{
+		} else {
 			$url = $this->controller->request->here();
 			$code = ($error->getCode() >= 400 && $error->getCode() < 506) ? $error->getCode() : 500;
 			$this->controller->response->statusCode($code);
 			$this->controller->set(array(
-				'code' => $code,
-				'url' => h($url),
-				'name' => h($error->getMessage()),
-				'error' => $error,
-				'_serialize' => array('code', 'url', 'name')
+			    'code' => $code,
+			    'url' => h($url),
+			    'name' => h($error->getMessage()),
+			    'error' => $error,
+			    '_serialize' => array('code', 'url', 'name')
 			));
 			$this->controller->set($error->getAttributes());
 			$this->_outputMessage($this->template);
@@ -92,13 +93,31 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	/**
 	 * error400() overrides the default Cake function so we can respond with rich XML/JSON errormessages
 	 *
+	 * @note DONE (TESTED SUCCESSFULLY)
 	 * @param CakeException $error
 	 * @return void
 	 */
-	public function error400DIS($error) {
-		pr("Exception is of class: " . get_class($error) . "\n");
-		$this->_setRichErrorInformation($error);
-		$this->_outputMessage('error400');
+	public function error400($error) {
+
+		CakeLog::write('error', 'RestKitExceptionRenderer: entered error400');
+		if ($this->controller->RestKit->isRest) {
+			$this->_setRichErrorInformation($error);
+			$this->_outputMessage($this->template);
+		} else {
+			$message = $error->getMessage();
+			if (!Configure::read('debug') && $error instanceof CakeException) {
+				$message = __d('cake', 'Not Found');
+			}
+			$url = $this->controller->request->here();
+			$this->controller->response->statusCode($error->getCode());
+			$this->controller->set(array(
+			    'name' => h($message),
+			    'url' => h($url),
+			    'error' => $error,
+			    '_serialize' => array('name', 'url')
+			));
+			$this->_outputMessage('error400');
+		}
 	}
 
 	/**
@@ -109,10 +128,11 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 */
 	public function error500($error) {
 
-		if($this->controller->RestKit->isRest){
+		CakeLog::write('error', 'RestKitExceptionRenderer: entered error500');
+		if ($this->controller->RestKit->isRest) {
 			$this->_setRichErrorInformation($error);
-			$this->_outputMessage('RestKit');
-		}else{
+			$this->_outputMessage($this->template);
+		} else {
 
 			$message = $error->getMessage();
 			if (!Configure::read('debug')) {
@@ -122,16 +142,14 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 			$code = ($error->getCode() > 500 && $error->getCode() < 506) ? $error->getCode() : 500;
 			$this->controller->response->statusCode($code);
 			$this->controller->set(array(
-				'name' => h($message),
-				'message' => h($url),
-				'error' => $error,
-				'_serialize' => array('name', 'message')
+			    'name' => h($message),
+			    'message' => h($url),
+			    'error' => $error,
+			    '_serialize' => array('name', 'message')
 			));
 			$this->_outputMessage('error500');
 		}
 	}
-
-
 
 	/**
 	 * _setRichErrorInformation() is used to set up extra variables required for producing
@@ -153,13 +171,12 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 		$debug = Configure::read('debug');
 
 		// normalize passed array with error-information
-		$errorData = json_decode($error->getMessage(), true);	// pass true to generate an associative array
-
+		$errorData = json_decode($error->getMessage(), true); // pass true to generate an associative array
 		// if no rich error info was passed (eg for RuntimeExceptions, construct it ourselves)
-		if(!is_array($errorData)){
+		if (!is_array($errorData)) {
 			$errorData['message'] = $error->getMessage();
 			$errorData['code'] = $error->getCode();
-			if($debug){
+			if ($debug) {
 				$errorData['file'] = $error->getFile();
 				$errorData['line'] = $error->getLine();
 				$errorData['trace'] = $error->getTraceAsString();
@@ -212,29 +229,26 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 		}
 	}
 
-
 	/**
 	 * getVndData() is a convenience function to retrieve .....
 	 *
 	 * @param type $errorData
 	 * @return type
 	 */
-	private function _getVndData($errorData){
+	private function _getVndData($errorData) {
 		$out['hash'] = $this->_getVndErrorHash($errorData['code'], $errorData['message']);
 
 		$vndIds = $this->_getVndErrorIds($out['hash']);
-		if ($vndIds){
+		if ($vndIds) {
 			$out['error_id'] = $vndIds['error_id'];
 			$out['help_id'] = $vndIds['help_id'];
-		}else{
+		} else {
 			$result = $this->_saveVndError($out['hash'], $errorData['code'], $errorData['message']);
 			$out['error_id'] = $result['error_id'];
 			$out['help_id'] = $result['help_id'];
 		}
 		return $out;
 	}
-
-
 
 	/**
 	 * _getVndErrorHash() generates a hash to uniquely identify vnd.errors using a
@@ -287,12 +301,12 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 * @param type $message
 	 * @return type
 	 */
-	private function _saveVndError($hash, $code, $message){
+	private function _saveVndError($hash, $code, $message) {
 
 		$result = $this->VndError->save(array(
 		    'hash' => $hash,
-		    'status_code' => $code,	//$errorData['code'],
-		    'message' => $message		//$errorData['message'],
+		    'status_code' => $code, //$errorData['code'],
+		    'message' => $message  //$errorData['message'],
 		));
 
 		if (!empty($result)) {

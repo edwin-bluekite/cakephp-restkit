@@ -1,6 +1,7 @@
 <?php
 
 App::uses('RestKitView', 'Plugin/RestKit/View');
+App::uses('CakeLogInterface', 'Log');
 
 /**
  * RestKitJsonView is responsible for the viewless rendering of JSON responses in HAL format
@@ -119,15 +120,16 @@ class RestKitJsonView extends RestKitView {
 	 *
 	 * Note: $data is prepared in the RestKitExceptionRenderer
 	 *
-	 *
 	 * @param type $data
 	 * @return type
 	 */
 	protected function _serializeException($data) {
 
 		$out = array();
+		$debug = Configure::read('debug');
+
 		foreach ($data as $error) {
-			if (Configure::read('debug') == 0) {
+			if ($debug == 0) {
 				$temp = array();
 				$temp['logRef'] = $error['logRef'];
 				$temp['message'] = $error['message'];

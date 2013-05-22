@@ -1,6 +1,7 @@
 <?php
 
 App::uses('View', 'View');
+App::uses('CakeLogInterface', 'Log');
 
 class RestKitView extends View {
 
@@ -56,7 +57,7 @@ class RestKitView extends View {
 	 */
 	public function render($view = null, $layout = null) {
 
-		// Exceptions are serialized differently
+		// Handle Exceptions first (serialized differently)
 		if (isset($this->viewVars['Exception'])){
 			return $this->_serializeException($this->viewVars['Exception']);
 		}

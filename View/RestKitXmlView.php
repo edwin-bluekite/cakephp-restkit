@@ -130,12 +130,9 @@ class RestKitXmlView extends RestKitView {
 		$debug = Configure::read('debug');
 		$out = array();
 		foreach ($data as $error) {
-
-
 			$temp['error'] = array();
 
-			if (Configure::read('debug') == 0) {
-
+			if ($debug == 0) {
 				// vnd.error always requires logRef and message
 				$temp['error'] += array('@logRef' => $error['logRef']);
 				$temp['error']['message'] = $error['message'];
