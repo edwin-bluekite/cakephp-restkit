@@ -60,7 +60,7 @@ class RestKitErrorHandler extends ErrorHandler {
 
 		// call the RestKitExceptionRenderer
 		$exceptionHandler = Configure::read('Exception.handler');
-		call_user_func($exceptionHandler, new FatalErrorException(serialize($data), 500, $file, $line));
+		call_user_func($exceptionHandler, new FatalErrorException(json_encode($data), 500, $file, $line));
 		die();
 	}
 

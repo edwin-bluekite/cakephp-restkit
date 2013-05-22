@@ -107,8 +107,20 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	private function _setRichErrorInformation($error) {
 
 		// normalize passed array with error-information
-		$errorData = unserialize($error->getMessage());
+		$errorData = json_decode($error->getMessage(), true);	// pass true to generate an associative array
 
+		//try {
+		//	$errorData = unserialize($error->getMessage());
+		//} catch (ErrorException $e) {
+		//	pr("SOMETHING WENT WRONG, GENERATE PLAIN ARRAY");
+		//}
+
+
+
+
+//		pr("before");
+//		pr(error_get_last());
+//		pr("after");
 		// prepare view-data
 		$debug = Configure::read('debug');
 		if ($debug == 0) {
@@ -127,10 +139,9 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 				    'href' => Configure::read('RestKit.Documentation.errors') . '/' . $vndErrorHelpId,
 				    'title' => 'Error information'
 			)));
-
 		} else {
-			$errorData['class'] = get_class($error);	// adding the calling error/exception class seems useful
-			$viewData['debug'] = $errorData;		// only pass debug info to the RestKitView
+			$errorData['class'] = get_class($error); // adding the calling error/exception class seems useful
+			$viewData['debug'] = $errorData;  // only pass debug info to the RestKitView
 		}
 
 		// set up the 'Exception' viewVar so that RestKitJsonView and RestKitXmlView will
