@@ -27,6 +27,14 @@ class RestKitComponent extends Component {
 	public $validationErrors = array();
 
 	/**
+	 * $isRest becomes true if the request is made using xml or json
+	 *
+	 * @var boolean
+	 */
+	public $isRest = false;
+
+
+	/**
 	 * initialize() is used to setup references to the the calling Controller, add
 	 * Cake Detectors and to enforce REST-only
 	 *
@@ -59,32 +67,16 @@ class RestKitComponent extends Component {
 	 * @return void
 	 */
 	protected function setup(Controller $controller) {
-		//self::_forceJSON();   // return 404s for all non-JSON calls
+
+		// check if the request is json/xml
+		if($this->_isRest()){
+			$this->isRest = true;
+		}
+
 		// allow public access to everything when 'Authenticate' is set to false in the config file
 		if (Configure::read('RestKit.Authenticate') == false) {
 			$this->controller->Auth->allow();
 		}
-	}
-
-	/**
-	 * _forceJSON() will always throw a 404 for ALL non-JSON requests (instead of default
-	 * Cake behavior that would for example throw a 500 for requests not using an extension)
-	 *
-	 * @param void
-	 */
-	protected function _forceJSON() {
-
-		// allow if .json extension is used
-		if (in_array($this->controller->params['ext'], array('json'))) {
-			return;
-		}
-		// allow if a JSON Accept Header is used
-		if ($this->controller->RequestHandler->accepts('json')) {
-			return;
-		}
-
-		// definitely not JSON so throw a 404
-		throw new NotFoundException();
 	}
 
 	/**
@@ -235,10 +227,9 @@ class RestKitComponent extends Component {
 	 * @todo harden accept-headers (now returns true for xml if no extension or header is passed
 	 * @return boolean true if the call is json or xml
 	 */
-	public function isRest(){
+	private function _isRest(){
 
 		if (in_array($this->controller->params['ext'], array('json', 'xml'))) {
-			pr("IN ARRAY");
 			return true;
 		}
 		//if ($this->controller->RequestHandler->accepts('json')) {

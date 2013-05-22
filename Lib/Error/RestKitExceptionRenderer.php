@@ -19,8 +19,6 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	public $template = '';
 	public $error = null;
 	public $method = '';
-	public $isRest = null;	// true if the controller request is xml or json
-
 
 /**
  * Creates the controller to perform rendering on the error response.
@@ -32,9 +30,6 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
  */
 	public function __construct(Exception $exception) {
 		$this->controller = $this->_getController($exception);
-
-		// identify if the request is a REST request
-		$this->isRest = $this->controller->RestKit->isRest();
 
 		if (method_exists($this->controller, 'apperror')) {
 			return $this->controller->appError($exception);
@@ -117,7 +112,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 * _cakeError() overrides the default Cake function.
 	 *
 	 * If the request is json/xml we respond with rich XML/JSON errormessages, otherwise
-	 * we use the default Cake responses
+	 * we use the default Cake response (copied 1-on-1 from the Cake class)
 	 *
 	 *
 	 * @note DONE (TESTED SUCCESSFULLY)
@@ -126,7 +121,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 */
 	protected function _cakeError(CakeException $error) {
 
-		if($this->isRest){
+		if($this->controller->RestKit->isRest){
 			$this->_setRichErrorInformation($error);
 			$this->_outputMessage($this->template);
 		}else{
@@ -242,7 +237,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 * @param int $code
 	 * @return void
 	 */
-	private function _setHttpResponseHeaderDIS($code = null) {
+	private function _setHttpResponseHeader($code = null) {
 		$httpCode = $this->controller->response->httpCodes($code);
 		if ($httpCode[$code]) {
 			$this->controller->response->statusCode($code);
