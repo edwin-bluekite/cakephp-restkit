@@ -9,6 +9,9 @@
  */
 App::uses('ExceptionRenderer', 'Error');
 App::uses('CakeErrorController', 'Controller');
+App::uses('RestKitErrorHandler', 'RestKit.Lib/Error');
+App::uses('Controller', 'Controller');
+App::uses('RestKitComponent', 'RestKit.Controller/Component');
 
 class RestKitExceptionRenderer extends ExceptionRenderer {
 
@@ -16,6 +19,63 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	public $template = '';
 	public $error = null;
 	public $method = '';
+	public $isRest = null;	// true if the controller request is xml or json
+
+
+/**
+ * Creates the controller to perform rendering on the error response.
+ * If the error is a CakeException it will be converted to either a 400 or a 500
+ * code error depending on the code used to construct the error.
+ *
+ * @param Exception $exception Exception
+ * @return mixed Return void or value returned by controller's `appError()` function
+ */
+	public function __construct(Exception $exception) {
+		$this->controller = $this->_getController($exception);
+
+		// identify if the request is a REST request
+		$this->isRest = $this->controller->RestKit->isRest();
+
+		if (method_exists($this->controller, 'apperror')) {
+			return $this->controller->appError($exception);
+		}
+		$method = $template = Inflector::variable(str_replace('Exception', '', get_class($exception)));
+		$code = $exception->getCode();
+
+		$methodExists = method_exists($this, $method);
+
+		if ($exception instanceof CakeException && !$methodExists) {
+			$method = '_cakeError';
+			if (empty($template) || $template === 'internalError') {
+				$template = 'error500';
+			}
+		} elseif ($exception instanceof PDOException) {
+			$method = 'pdoError';
+			$template = 'pdo_error';
+			$code = 500;
+		} elseif (!$methodExists) {
+			$method = 'error500';
+			if ($code >= 400 && $code < 500) {
+				$method = 'error400';
+			}
+		}
+
+		$isNotDebug = !Configure::read('debug');
+		if ($isNotDebug && $method === '_cakeError') {
+			$method = 'error400';
+		}
+		if ($isNotDebug && $code == 500) {
+			$method = 'error500';
+		}
+		$this->template = $template;
+		$this->method = $method;
+		$this->error = $exception;
+	}
+
+
+
+
+
 
 	/**
 	 * _getController() is an override of the default Cake method (in subclasses) and is used
@@ -54,7 +114,10 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	}
 
 	/**
-	 * _cakeError() overrides the default Cake function so we can respond with rich XML/JSON errormessages
+	 * _cakeError() overrides the default Cake function.
+	 *
+	 * If the request is json/xml we respond with rich XML/JSON errormessages, otherwise
+	 * we use the default Cake responses
 	 *
 	 *
 	 * @note DONE (TESTED SUCCESSFULLY)
@@ -62,8 +125,24 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 * @return void
 	 */
 	protected function _cakeError(CakeException $error) {
-		$this->_setRichErrorInformation($error);
-		$this->_outputMessage($this->template);
+
+		if($this->isRest){
+			$this->_setRichErrorInformation($error);
+			$this->_outputMessage($this->template);
+		}else{
+			$url = $this->controller->request->here();
+			$code = ($error->getCode() >= 400 && $error->getCode() < 506) ? $error->getCode() : 500;
+			$this->controller->response->statusCode($code);
+			$this->controller->set(array(
+				'code' => $code,
+				'url' => h($url),
+				'name' => h($error->getMessage()),
+				'error' => $error,
+				'_serialize' => array('code', 'url', 'name')
+			));
+			$this->controller->set($error->getAttributes());
+			$this->_outputMessage($this->template);
+		}
 	}
 
 	/**
@@ -72,7 +151,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 * @param CakeException $error
 	 * @return void
 	 */
-	public function error400($error) {
+	public function error400DIS($error) {
 		pr("Exception is of class: " . get_class($error) . "\n");
 		$this->_setRichErrorInformation($error);
 		$this->_outputMessage('error400');
@@ -84,7 +163,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 * @param CakeException $error
 	 * @return void
 	 */
-	public function error500($error) {
+	public function error500DIS($error) {
 		pr("Exception is of class: " . get_class($error) . "\n");
 		$this->_setRichErrorInformation($error);
 		$this->_outputMessage('error500');
@@ -163,7 +242,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 * @param int $code
 	 * @return void
 	 */
-	private function _setHttpResponseHeader($code = null) {
+	private function _setHttpResponseHeaderDIS($code = null) {
 		$httpCode = $this->controller->response->httpCodes($code);
 		if ($httpCode[$code]) {
 			$this->controller->response->statusCode($code);
@@ -173,27 +252,6 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 		}
 	}
 
-	/**
-	 * _getMoreInfo() auto-generates a moreInfo link by using the moreInfo base URL
-	 * specified in the RestKit configfile) and then appending the HTTP Status Code.
-	 *
-	 * CakeExceptions will lead to links using the "valid" HTTP Status Code, e.g.:
-	 * - http://www.yourapidocs.com/403
-	 * - http://www.yourapidocs.com/500
-	 *
-	 * RestKitExceptions will lead to links using the default 500 or the $code parameter passed, e.g.:
-	 * - http://www.apidocs.com/500
-	 * - http://www.apidocs.com/12004
-	 *
-	 * @todo add support for link extension?
-	 *
-	 * @param type $error
-	 * @return string
-	 */
-	private function _getMoreInfo($code) {
-		$moreInfo = Configure::read('RestKit.Response.moreInfo') . '/' . $code;
-		return $moreInfo;
-	}
 
 	/**
 	 * _getVndErrorHash() generates a hash to uniquely identify vnd.errors using a

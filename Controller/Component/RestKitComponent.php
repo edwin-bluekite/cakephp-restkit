@@ -228,4 +228,30 @@ class RestKitComponent extends Component {
 		return($stripped);
 	}
 
+
+	/**
+	 * isRest() checks if the request is a REST call
+	 *
+	 * @todo harden accept-headers (now returns true for xml if no extension or header is passed
+	 * @return boolean true if the call is json or xml
+	 */
+	public function isRest(){
+
+		if (in_array($this->controller->params['ext'], array('json', 'xml'))) {
+			pr("IN ARRAY");
+			return true;
+		}
+		//if ($this->controller->RequestHandler->accepts('json')) {
+		//	pr("ACCEPTS JSON");
+		//	return true;
+		//}
+		//if ($this->controller->RequestHandler->accepts('xml')) {
+		//	pr("ACCEPTS XML");
+		//	return true;
+		//}
+		return false;
+	}
+
+
+
 }
