@@ -125,11 +125,9 @@ class RestKitJsonView extends RestKitView {
 	 */
 	protected function _serializeException($data) {
 
-		$debug = Configure::read('debug');
 		$out = array();
-
 		foreach ($data as $error) {
-			if ($debug == 0) {
+			if (Configure::read('debug') == 0) {
 				$temp = array();
 				$temp['logRef'] = $error['logRef'];
 				$temp['message'] = $error['message'];

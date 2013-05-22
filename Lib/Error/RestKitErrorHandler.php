@@ -42,14 +42,13 @@ class RestKitErrorHandler extends ErrorHandler {
 			);
 		} else {
 			$data = array(
-			    'level' => $log,
-			    'code' => $code,
 			    'error' => $error,
 			    'message' => htmlspecialchars($description),
 			    'file' => $file,
 			    'line' => $line,
+			    'level' => $log,
+			    'code' => $code,
 			    'context' => htmlspecialchars($context),
-			    'start' => 2,
 			    'path' => Debugger::trimPath($file),
 			    'trace' => htmlspecialchars(Debugger::trace(array('start' => 1, 'format' => 'log')))
 			);
