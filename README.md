@@ -1,6 +1,6 @@
 # CakePHP RestKit plugin
 
-A plugin that will instantly turn your app into a full featured HAL REST API
+A stateless REST API plugin for CakePHP
 
 ## Version ##
 
