@@ -77,7 +77,16 @@ All options can be configurated by editing /app/Plugin/RestKit/Config/config.php
 This plugin uses custom viewless JSON and XML to render the results so no need to (ever) create any view files.
 Identical to the Cake viewless rendering as described perfectly here: http://api20.cakephp.org/class/json-view.
 
-For example code and various responses in HAL-XML and HAL-JSON see:
+A basic example:
+
+    public function index() {
+        $result = $this->Country->find('all', array('fields' => array('id')));
+        $this->set(array(
+            'Countries' => $result,
+            '_serialize' => array('Countries')));
+    }
+
+For more examples of code-usage and corresponding output in HAL-XML and HAL-JSON see:
 
 * **listing collections:** https://gist.github.com/bravo-kernel/5568181
 * **viewing entities:** https://gist.github.com/bravo-kernel/5568855
