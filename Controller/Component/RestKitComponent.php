@@ -27,14 +27,6 @@ class RestKitComponent extends Component {
 	public $validationErrors = array();
 
 	/**
-	 * $isRest becomes true if the request is made using xml or json
-	 *
-	 * @var boolean
-	 */
-	public $isRest = false;
-
-
-	/**
 	 * initialize() is used to setup references to the the calling Controller, add
 	 * Cake Detectors and to enforce REST-only
 	 *
@@ -68,9 +60,11 @@ class RestKitComponent extends Component {
 	 */
 	protected function setup(Controller $controller) {
 
-		// check if the request is json/xml
+		// set a boolean in the calling controller (true if the request is made using xml or json)
 		if($this->_isRest()){
-			$this->isRest = true;
+			$this->controller->isRest = true;
+		}else{
+			$this->controller->isRest = false;
 		}
 
 		// allow public access to everything when 'Authenticate' is set to false in the config file
