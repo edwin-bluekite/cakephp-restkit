@@ -36,17 +36,15 @@ Clone the repository into /app/Plugin/RestKit:
 Load the following components in /app/Controller/AppController.php
 
     public $components = array(
-	    'RequestHandler' => array(
+        'RequestHandler' => array(
 		'viewClassMap' => array(
 		    'json' => 'RestKit.RestKitJson',
-		    'xml' => 'RestKit.RestKitXml',
-		)
-	    ),
-	 'Auth' => array(
+		    'xml' => 'RestKit.RestKitXml')),
+        'Auth' => array(
              'authenticate' => array(
                  'Basic' => array(
                  'fields' => array('username' => 'username')))),
-         'RestKit.RestKit');
+        'RestKit.RestKit');
 
 Enable the RestKit plugin in /app/Config/bootstrap.php:
 
@@ -81,9 +79,11 @@ A basic example:
 
     public function index() {
         $result = $this->Country->find('all', array('fields' => array('id')));
-        $this->set(array(
-            'Countries' => $result,
-            '_serialize' => array('Countries')));
+        if ($this->isRest){
+            $this->set(array(
+                'Countries' => $result,
+                '_serialize' => array('Countries')));
+        }
     }
 
 For more examples of code-usage and corresponding output in HAL-XML and HAL-JSON see:
