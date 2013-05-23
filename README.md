@@ -21,6 +21,12 @@ This plugin is still heavily under construction so do not use it unless you valu
 * CakePHP 2.4 or higher
 * CakeDC Migrations plugin
 
+## Support
+
+Do you have a question, want to see a feature or have you found a bug?
+
+Please visit our Github Issue page at https://github.com/alt3/cakephp-restkit/issues.
+
 ## Installation
 
 Clone the repository into /app/Plugin/RestKit:
@@ -135,14 +141,6 @@ If validation fails you can access the validation errors using $this->RestKit->v
     if (!$this->RestKit->validOption('limit')){
         pr($this->RestKit->validationErrors);
     }
-
-# TODO/MIGHT
-
-* version prefixing (e.g. /v1/)
-* automagic error and help pages
-* add debug information to Exceptions
-* make default RestKit HTTP Status Code description a configuration option
-* normalize html error responses (now share REST logic)
 
 # Links
 
