@@ -191,7 +191,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 			if ($errorData['code'] == 404) {
 				$errorData['message'] = 'Not Found';
 			}
-			if ($errorData['code'] == 500) {
+			if ($errorData['code'] >= 500 && $errorData ['code'] < 506) {
 				$errorData['message'] = 'An Internal Error Has Occurred';
 			}
 
