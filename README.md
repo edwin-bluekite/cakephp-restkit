@@ -13,6 +13,7 @@ This plugin is still heavily under construction so do not use it unless you valu
 * Basic authentication (enable in the config, docs will follow)
 * Custom HTTP Status Codes
 * Validation rules for query parameters
+* Automatically REST-enables all controllers in your app
 * Please note that this readme is terribly outdated (will update soon)
 
 ## Requirements
