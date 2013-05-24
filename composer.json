@@ -7,6 +7,6 @@
 	"require": {
 		"php": ">=5.3.0",
 		"composer/installers": "*",
-		"cakedc/migrations": "master-dev"
+		"cakedc/migrations": "dev-master"
 	}
 }

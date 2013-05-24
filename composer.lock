@@ -3,7 +3,7 @@
         "This file locks the dependencies of your project to a known state",
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file"
     ],
-    "hash": "bd42991c5f4a6efcb4c79a33627a2bc0",
+    "hash": "654890d4b6a59f40c5a16744d0a88a66",
     "packages": [
         {
             "name": "cakedc/migrations",
