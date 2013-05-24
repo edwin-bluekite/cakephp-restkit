@@ -4,7 +4,7 @@ A stateless REST API plugin for CakePHP
 
 ## Version ##
 
-This plugin is still heavily under construction so do not use it unless you value your production environment ;)
+Version 0.1 (tag 0.1.0) contains a working prototype.
 
 **Features:**
 
