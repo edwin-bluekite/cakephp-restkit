@@ -45,6 +45,8 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 * return void
 	 */
 	public function restKit(RestKitException $error) {
+
+		CakeLog::write('error', 'RestKitExceptionRenderer: entered restKit');
 //		pr("_cakeError is of class: " . get_class($error) . "\n");
 //		pr("DATA BELOW:\n");
 //		$serialized = $error->getMessage();
@@ -71,7 +73,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	protected function _cakeError(CakeException $error) {
 
 		CakeLog::write('error', 'RestKitExceptionRenderer: entered _cakeError');
-		if ($this->controller->RestKit->isRest) {
+		if ($this->controller->isRest) {
 			$this->_setRichErrorInformation($error);
 			$this->_outputMessage($this->template);
 		} else {
@@ -100,7 +102,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	public function error400($error) {
 
 		CakeLog::write('error', 'RestKitExceptionRenderer: entered error400');
-		if ($this->controller->RestKit->isRest) {
+		if ($this->controller->isRest) {
 			$this->_setRichErrorInformation($error);
 			$this->_outputMessage($this->template);
 		} else {
@@ -129,7 +131,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	public function error500($error) {
 
 		CakeLog::write('error', 'RestKitExceptionRenderer: entered error500');
-		if ($this->controller->RestKit->isRest) {
+		if ($this->controller->isRest) {
 			$this->_setRichErrorInformation($error);
 			$this->_outputMessage($this->template);
 		} else {
