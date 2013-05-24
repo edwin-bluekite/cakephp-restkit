@@ -8,7 +8,7 @@ $config['RestKit'] = array(
 	'forcePrefix' => false						// true will disable the default CakePHP routes (allowing only prefixed access)
     ),
 
-    'Authenticate' => true,						// turn on/off Basic authentication using Cake AuthComponent
+    'Authenticate' => false,						// turn on/off Basic authentication using Cake AuthComponent
 
     'Documentation' => array(
 	'errors' => 'http://www.bravo-kernel.com/docs/errors',		// full URL pointing to your API error documentation
