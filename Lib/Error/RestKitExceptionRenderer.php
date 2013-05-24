@@ -39,12 +39,13 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 *
 	 * Calling it with
 	 *
-	 * @todo fix crash when throwing RestKitException() without message-string
+	 * @todo re-implement
+	 * @todo (still?) fix crash when throwing RestKitException() without message-string
 	 *
 	 * @param type RestKitException $error
 	 * return void
 	 */
-	public function restKit(RestKitException $error) {
+	public function restKitDISABLED(RestKitException $error) {
 
 		CakeLog::write('error', 'RestKitExceptionRenderer: entered restKit');
 //		pr("_cakeError is of class: " . get_class($error) . "\n");
@@ -164,6 +165,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 * they are required by the default HTML error-views.
 	 *
 	 * @todo add support for multiple errors !!!!
+	 * @todo maybe remove serialization (seems no longer required now that we use the default ErrorHandler)
 	 *
 	 * @param CakeException $error
 	 */
@@ -175,11 +177,16 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 		// normalize passed array with error-information
 		$errorData = json_decode($error->getMessage(), true);
 
+		// add the Exception class to improve error readability
+		$errorClass = get_class($error);
+
 		// if no rich error info was passed (eg for RuntimeExceptions, construct it ourselves)
 		if (!is_array($errorData)) {
+
 			$errorData['message'] = $error->getMessage();
 			$errorData['code'] = $error->getCode();
 			if ($debug) {
+				$errorData['class'] = $errorClass;
 				$errorData['file'] = $error->getFile();
 				$errorData['line'] = $error->getLine();
 				$errorData['trace'] = $error->getTraceAsString();
@@ -189,7 +196,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 		// Handle debug/non-debug mode differently
 		if ($debug == 0) {
 
-			// reset message in non-production mode
+			// reset message in production mode
 			if ($errorData['code'] == 404) {
 				$errorData['message'] = 'Not Found';
 			}
@@ -208,7 +215,10 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 				    'title' => 'Error information'
 			)));
 		} else {
-			$errorData['class'] = get_class($error); // adding the calling error/exception class seems useful
+			// add Exception class to the top of the array for readability
+			$errorData = array_merge(array('class' => $errorClass), $errorData);
+
+			//$errorData['class'] = get_class($error); // adding the calling error/exception class seems useful
 			$viewData['debug'] = $errorData;  // only pass debug info to the RestKitView
 		}
 
