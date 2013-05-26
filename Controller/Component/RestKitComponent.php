@@ -60,12 +60,11 @@ class RestKitComponent extends Component {
 	 */
 	protected function setup(Controller $controller) {
 
+		// active our custom callback-detectors so we can detect HAL requests
+		$this->addRequestDetectors();
+
 		// set a boolean in the calling controller (true if the request is made using xml or json)
-		if ($this->_isRest()) {
-			$this->controller->isRest = true;
-		} else {
-			$this->controller->isRest = false;
-		}
+		$this->controller->isRest = $this->_isRest();
 
 		// allow public access to everything when 'Authenticate' is set to false in the config file
 		if (Configure::read('RestKit.Authenticate') == false) {
@@ -215,32 +214,69 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 * isRest() checks if the request is a REST call
+	 * _addRequestDetectors() ....
+	 */
+	protected function addRequestDetectors() {
+		$this->_addJsonDetector();
+		$this->_addXmlDetector();
+	}
+
+	/**
 	 *
-	 * @todo harden accept-headers (now returns true for xml if no extension or header is passed
+	 * _addJsonDetector() is a custom callback-detector that will not only detect standard
+	 * json requests but also HAL-specific json requests using the "application/hal+json" Accept Header.
+	 *
+	 * @return boolean true is the request is a json-request
+	 */
+	private function _addJsonDetector() {
+		$this->controller->request->addDetector('json+hal', array('callback' => function(CakeRequest $request) {
+
+			    // check for extension ".json" first
+			    if (isset($request->params['ext']) && $request->params['ext'] === 'json') {
+				    return true;
+			    }
+			    // check standard JSON Accept Header next
+			    if ($request->accepts('application/json')) {
+				    return true;
+			    }
+			    // finally check HAL-JSON Accept Header
+			    return $request->accepts('application/hal+json');
+		    }));
+	}
+
+	/**
+	 *
+	 * _addXmlDetector() is a custom callback-detector that will not only detect standard
+	 * xml requests but also HAL-specific xml requests using the "application/hal+xml" Accept Header.
+	 *
+	 * @return boolean true is the request is a json-request
+	 */
+	private function _addXmlDetector() {
+		$this->controller->request->addDetector('xml+hal', array('callback' => function(CakeRequest $request) {
+
+			    // check for extension ".xml first
+			    if (isset($request->params['ext']) && $request->params['ext'] === 'xml') {
+				    return true;
+			    }
+			    // check standard XML Accept Header next
+			    if ($request->accepts('application/xml')) {
+				    return true;
+			    }
+			    // finally check HAL-XML Accept Header
+			    return $request->accepts('application/hal+xml');
+		    }));
+	}
+
+	/**
+	 * isRest() checks if the request is an xml or json REST call
+	 *
 	 * @return boolean true if the call is json or xml
 	 */
 	private function _isRest() {
-
-		// check for .json or .xml extension
-		if (in_array($this->controller->params['ext'], array('json', 'xml'))) {
+		if ($this->controller->request->is('json+hal')) {
 			return true;
 		}
-
-		// assume default browser (e.g. Firefox) if text/html is (one of) the Accept Header(s)
-		if ($this->controller->RequestHandler->accepts('html')) {
-			return false;
-		}
-
-		// check the Accept Headers
-		if ($this->controller->RequestHandler->accepts('json')) {
-			return true;
-		}
-		if ($this->controller->RequestHandler->accepts('xml')) {
-			return true;
-		}
-
-		return false;
+		return $this->controller->request->is('xml+hal');
 	}
 
 }
