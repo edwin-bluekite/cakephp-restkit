@@ -151,6 +151,23 @@ If validation fails you can access the validation errors using $this->RestKit->v
         pr($this->RestKit->validationErrors);
     }
 
+### Detectors
+
+The RestKit plugin comes with a couple of useful request detectors you can use in your application.
+
+* **json**: returns true for standard json requests
+* **xml**: returns true for standard xml requests
+* **jsonHal**: returns true for HAL-specific json requests
+* **xmlHal**: returns true for HAL-specific xml requests
+* **hal**: returns true if the request is either jsonHal or xmlHal
+* **rest**: returns true if the request is either json, xml, jsonHal or xmlHal
+
+Usage example:
+
+    if ($this->request->is('jsonHal')){
+        echo "Request was made with the "application/hal+json" Accept Header";
+    }
+
 # Links
 
 * REST Maturity Levels: http://martinfowler.com/articles/richardsonMaturityModel.html
