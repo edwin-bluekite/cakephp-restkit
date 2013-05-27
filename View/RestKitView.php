@@ -63,8 +63,10 @@ class RestKitView extends View {
 			return $this->_serializeException($this->viewVars['Exception']);
 		}
 
-		// respond with the HAL Content-Type header
-		$this->_setHalContentTypeHeader();
+		// respond with a HAL Content-Type header (if needed)
+		if($this->request->is('hal')){
+			$this->_setHalContentTypeHeader();
+		}
 
 		// merge passed options
 		if (isset($this->viewVars['options'])) {
@@ -119,12 +121,13 @@ class RestKitView extends View {
 	 * ("application/hal+json" or "application/hal+xml").
 	 */
 	private function _setHalContentTypeHeader() {
-		if ($this->request->is('json+hal')) {
-			$this->response->type(array('json+hal' => 'application/hal+json'));
-			$this->response->type('json+hal');
-		} else {
-			$this->response->type(array('xml+hal' => 'application/hal+xml'));
-			$this->response->type('xml+hal');
+		if ($this->request->is('jsonHal')) {
+			$this->response->type(array('jsonHal' => 'application/hal+json'));
+			$this->response->type('jsonHal');
+		}
+		if ($this->request->is('xmlHal')) {
+			$this->response->type(array('xmlHal' => 'application/hal+json'));
+			$this->response->type('xmlHal');
 		}
 	}
 
@@ -133,12 +136,12 @@ class RestKitView extends View {
 	 * Content-Type header ("application/vnd.error+json" or "application/vnd.error+xml").
 	 */
 	private function _setVndErrorContentTypeHeader() {
-		if ($this->request->is('json+hal')) {
-			$this->response->type(array('json+vnd' => 'application/vnd.error+json'));
-			$this->response->type('json+vnd');
+		if ($this->request->is('jsonHal')) {
+			$this->response->type(array('jsonVndError' => 'application/vnd.error+json'));
+			$this->response->type('jsonVndError');
 		} else {
-			$this->response->type(array('xml+vnd' => 'application/vnd.error+xml'));
-			$this->response->type('xml+vnd');
+			$this->response->type(array('xmlVndError' => 'application/vnd.error+xml'));
+			$this->response->type('xmlVndError');
 		}
 	}
 
