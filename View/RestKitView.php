@@ -62,6 +62,9 @@ class RestKitView extends View {
 			return $this->_serializeException($this->viewVars['Exception']);
 		}
 
+		// respond with the HAL Content-Type header
+		$this->_setHalContentTypeHeader();
+
 		// merge passed options
 		if (isset($this->viewVars['options'])) {
 			$this->options = Hash::merge($this->options, $this->viewVars['options']);
@@ -109,5 +112,22 @@ class RestKitView extends View {
 		}
 		return true;
 	}
+
+	/**
+	 * _setHalContentTypeHeader() is used to respond with the correct HAL Content-Type header
+	 */
+	private function _setHalContentTypeHeader(){
+		if ($this->request->is('json+hal')){
+			echo "JSON-HAL\n";
+			$this->response->type(array('json+hal' => 'application/hal+json'));
+			$this->response->type('json+hal');
+		}else{
+			echo "XML-HAL\n";
+			$this->response->type(array('xml+hal' => 'application/hal+xml'));
+			$this->response->type('xml+hal');
+		}
+	}
+
+
 
 }
