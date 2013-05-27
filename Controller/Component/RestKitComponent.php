@@ -316,4 +316,20 @@ class RestKitComponent extends Component {
 		    }));
 	}
 
+	/**
+	 * _addHalDetector() defines a callback-detector that will check if a request is HAL
+	 * by checking for jsonHal and xmlHal.
+	 */
+	private function _addHalDetector() {
+		$this->controller->request->addDetector('hal', array('callback' => function(CakeRequest $request) {
+			    if ($request->is('jsonHal')) {
+				    return true;
+			    }
+			    if ($request->is('xmlHal')) {
+				    return true;
+			    }
+			    return false;
+		    }));
+	}
+
 }
