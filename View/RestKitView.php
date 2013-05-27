@@ -126,7 +126,7 @@ class RestKitView extends View {
 			$this->response->type('jsonHal');
 		}
 		if ($this->request->is('xmlHal')) {
-			$this->response->type(array('xmlHal' => 'application/hal+json'));
+			$this->response->type(array('xmlHal' => 'application/hal+xml'));
 			$this->response->type('xmlHal');
 		}
 	}
