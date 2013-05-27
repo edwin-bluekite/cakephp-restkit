@@ -136,13 +136,13 @@ class RestKitView extends View {
 	 * Content-Type header ("application/vnd.error+json" or "application/vnd.error+xml").
 	 */
 	private function _setVndErrorContentTypeHeader() {
-		if ($this->request->is('jsonHal')) {
+		if ($this->request->is('json') || $this->request->is('jsonHal')) {
 			$this->response->type(array('jsonVndError' => 'application/vnd.error+json'));
 			$this->response->type('jsonVndError');
-		} else {
-			$this->response->type(array('xmlVndError' => 'application/vnd.error+xml'));
-			$this->response->type('xmlVndError');
+			return;
 		}
+		$this->response->type(array('xmlVndError' => 'application/vnd.error+xml'));
+		$this->response->type('xmlVndError');
 	}
 
 }
