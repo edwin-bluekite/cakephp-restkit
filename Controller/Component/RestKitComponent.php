@@ -231,16 +231,20 @@ class RestKitComponent extends Component {
 	private function _addJsonDetector() {
 		$this->controller->request->addDetector('json+hal', array('callback' => function(CakeRequest $request) {
 
-			    // check for extension ".json" first
+			    // check for extension ".json"
 			    if (isset($request->params['ext']) && $request->params['ext'] === 'json') {
 				    return true;
 			    }
-			    // check standard JSON Accept Header next
-			    if ($request->accepts('application/json')) {
+			    // check if the prefered Accept Header is json
+			    $accepts = $request->accepts();
+			    if ($accepts[0] == 'application/json') {
 				    return true;
 			    }
-			    // finally check HAL-JSON Accept Header
-			    return $request->accepts('application/hal+json');
+			    // check for explicit JSON-HAL Accept Header
+			    if ($request->accepts('application/hal+json')) {
+				    return true;
+			    }
+			    return false;
 		    }));
 	}
 
@@ -254,16 +258,20 @@ class RestKitComponent extends Component {
 	private function _addXmlDetector() {
 		$this->controller->request->addDetector('xml+hal', array('callback' => function(CakeRequest $request) {
 
-			    // check for extension ".xml first
+			    // check for extension ".xml"
 			    if (isset($request->params['ext']) && $request->params['ext'] === 'xml') {
 				    return true;
 			    }
-			    // check standard XML Accept Header next
-			    if ($request->accepts('application/xml')) {
+			    // check if the prefered Accept Header is xml
+			    $accepts = $request->accepts();
+			    if ($accepts[0] == 'application/xml') {
 				    return true;
 			    }
-			    // finally check HAL-XML Accept Header
-			    return $request->accepts('application/hal+xml');
+			    // check for explicit HAL-XML Accept Header
+			    if ($request->accepts('application/hal+xml')) {
+				    return true;
+			    }
+			    return false;
 		    }));
 	}
 
@@ -273,10 +281,14 @@ class RestKitComponent extends Component {
 	 * @return boolean true if the call is json or xml
 	 */
 	private function _isRest() {
+
 		if ($this->controller->request->is('json+hal')) {
 			return true;
 		}
-		return $this->controller->request->is('xml+hal');
+		if ($this->controller->request->is('xml+hal')) {
+			return true;
+		}
+		return false;
 	}
 
 }
