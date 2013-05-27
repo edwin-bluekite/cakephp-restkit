@@ -120,11 +120,11 @@ class RestKitView extends View {
 	 */
 	private function _setHalContentTypeHeader() {
 		if ($this->request->is('json') || $this->request->is('jsonHal')) {
-			$this->response->type(array('jsonHal' => 'application/hal+json'));
+			$this->response->type(array('jsonHal' => 'application/hal+json; charset=' . Configure::read('App.encoding')));
 			$this->response->type('jsonHal');
 			return;
 		}
-		$this->response->type(array('xmlHal' => 'application/hal+xml'));
+		$this->response->type(array('xmlHal' => 'application/hal+xml; charset=' . Configure::read('App.encoding')));
 		$this->response->type('xmlHal');
 	}
 
