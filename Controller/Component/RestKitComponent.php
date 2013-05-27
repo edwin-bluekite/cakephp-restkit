@@ -52,6 +52,23 @@ class RestKitComponent extends Component {
 
 	}
 
+
+	/**
+	 * beforeRender() is used to make sure HAL requests are rendered as json/xml
+	 * using the viewless logic in RestKitView.
+	 *
+	 * @param Controller $controller
+	 */
+	public function beforeRender(Controller $controller) {
+		if($controller->request->is('jsonHal')){
+			$controller->RequestHandler->renderAs($controller, 'json');
+		}
+		if($controller->request->is('xmlHal')){
+			$controller->RequestHandler->renderAs($controller, 'xml');
+		}
+	}
+
+
 	/**
 	 * setup() is used to configure the RestKit component
 	 *
@@ -64,13 +81,16 @@ class RestKitComponent extends Component {
 		$this->addRequestDetectors();
 
 		// set a boolean in the calling controller (true if the request is made using xml or json)
-		$this->controller->isRest = $this->controller->request->is('rest');
+		$controller->isRest = $controller->request->is('rest');
 
 		// allow public access to everything when 'Authenticate' is set to false in the config file
 		if (Configure::read('RestKit.Authenticate') == false) {
-			$this->controller->Auth->allow();
+			$controller->Auth->allow();
 		}
 	}
+
+
+
 
 	/**
 	 * setError() is used to buffer error-messages to be included in the response
@@ -221,6 +241,7 @@ class RestKitComponent extends Component {
 		$this->_addJsonHalDetector();
 		$this->_addXmlDetector();
 		$this->_addXmlHalDetector();
+		$this->_addHalDetector();
 		$this->_addRestDetector();
 	}
 
