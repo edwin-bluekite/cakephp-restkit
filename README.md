@@ -165,7 +165,7 @@ The RestKit plugin comes with a couple of useful request detectors you can use i
 Usage example:
 
     if ($this->request->is('jsonHal')){
-        echo "Request was made with the "application/hal+json" Accept Header";
+        echo "Request was made with the 'application/hal+json' Accept Header";
     }
 
 # Links
