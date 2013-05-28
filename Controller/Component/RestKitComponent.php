@@ -80,9 +80,6 @@ class RestKitComponent extends Component {
 		// active our custom callback-detectors so we can detect HAL requests
 		$this->addRequestDetectors();
 
-		// set a boolean in the calling controller (true if the request is made using xml or json)
-		$controller->isRest = $controller->request->is('rest');
-
 		// allow public access to everything when 'Authenticate' is set to false in the config file
 		if (Configure::read('RestKit.Authenticate') == false) {
 			$controller->Auth->allow();

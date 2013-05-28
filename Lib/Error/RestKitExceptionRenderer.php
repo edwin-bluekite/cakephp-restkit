@@ -74,7 +74,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	protected function _cakeError(CakeException $error) {
 
 		CakeLog::write('error', 'RestKitExceptionRenderer: entered _cakeError');
-		if ($this->controller->isRest) {
+		if ($this->controller->request->is('rest')) {
 			$this->_setRichErrorInformation($error);
 			$this->_outputMessage($this->template);
 		} else {
@@ -103,7 +103,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	public function error400($error) {
 
 		CakeLog::write('error', 'RestKitExceptionRenderer: entered error400');
-		if ($this->controller->isRest) {
+		if ($this->controller->request->is('rest')) {
 			$this->_setRichErrorInformation($error);
 			$this->_outputMessage($this->template);
 		} else {
@@ -132,7 +132,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	public function error500($error) {
 
 		CakeLog::write('error', 'RestKitExceptionRenderer: entered error500');
-		if ($this->controller->isRest) {
+		if ($this->controller->request->is('rest')) {
 			$this->_setRichErrorInformation($error);
 			$this->_outputMessage($this->template);
 		} else {
