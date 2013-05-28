@@ -79,7 +79,7 @@ A basic example:
 
     public function index() {
         $result = $this->Country->find('all', array('fields' => array('id')));
-        if ($this->isRest){
+        if ($this->request->is('rest')){
             $this->set(array(
                 'Countries' => $result,
                 '_serialize' => array('Countries')));
