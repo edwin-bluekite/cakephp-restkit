@@ -128,9 +128,11 @@ class RestKitJsonView extends RestKitView {
 		$out = array();
 		$debug = Configure::read('debug');
 
-		foreach ($data as $error) {
+		foreach ($data as $key => $error) {
+			$temp = array();
+
+			// only format as vnd.error in production mode
 			if ($debug == 0) {
-				$temp = array();
 				$temp['logRef'] = $error['logRef'];
 				$temp['message'] = $error['message'];
 				$temp['_links'] = array();
@@ -138,7 +140,7 @@ class RestKitJsonView extends RestKitView {
 					array_push($temp['_links'], array($key => $pair));
 				}
 			} else {
-				$temp['debug'] = $error['debug'];
+				$temp = $error;
 			}
 			array_push($out, $temp);
 		}

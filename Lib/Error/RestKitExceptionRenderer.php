@@ -171,65 +171,53 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 */
 	private function _setRichErrorInformation($error) {
 
-		// respond differently when in debug mode
+		// set up variables
+		$class = get_class($error);  // add the Exception class to improve error readability
+		$message = $error->getMessage();
+		$code = $error->getCode();  // same $code is used for all error entities in a single vnd.error
+		// reset $message in production-mode
 		$debug = Configure::read('debug');
+		if ($debug == 0) {
+			if ($code == 404) {
+				$message = 'Not Found';
+			}
+			if ($code >= 500 && $code < 506) {
+				$message = 'An Internal Error Has Occurred';
+			}
+		}
 
 		// normalize passed array with error-information
+		// @todo: CUSTOM JSON DECODES NOT IMPLEMENTED YET (PROBABLY WHEN RESTKIT-EXCEPTIONS ARE DONE)
 		$errorData = json_decode($error->getMessage(), true);
 
-		// add the Exception class to improve error readability
-		$errorClass = get_class($error);
-
-		// if no rich error info was passed (eg for RuntimeExceptions, construct it ourselves)
+		// if no rich error info was passed construct it ourselves (e.g. for RuntimeExceptions)
 		if (!is_array($errorData)) {
-
-			$errorData['message'] = $error->getMessage();
-			$errorData['code'] = $error->getCode();
-			if ($debug) {
-				$errorData['class'] = $errorClass;
-				$errorData['file'] = $error->getFile();
-				$errorData['line'] = $error->getLine();
-				$errorData['trace'] = $error->getTraceAsString();
+			if ($debug == 0) {
+				$vndData = $this->_getVndData($code, $message);
+				$errorData[0] = array(
+				    'logRef' => $vndData['error_id'],
+				    'message' => $message,
+				    'links' => array(
+					'help' => array(
+					    'href' => Configure::read('RestKit.Documentation.errors') . '/' . $vndData['help_id'],
+					    'title' => 'Error information'
+				)));
+			} else {
+				$errorData[0]['code'] = $code;
+				$errorData[0]['class'] = $class;
+				$errorData[0]['message'] = $message;
+				$errorData[0]['file'] = $error->getFile();
+				$errorData[0]['line'] = $error->getLine();
+				$errorData[0]['trace'] = $error->getTraceAsString();
 			}
 		}
 
-		// Handle debug/non-debug mode differently
-		if ($debug == 0) {
-
-			// reset message in production mode
-			if ($errorData['code'] == 404) {
-				$errorData['message'] = 'Not Found';
-			}
-			if ($errorData['code'] >= 500 && $errorData ['code'] < 506) {
-				$errorData['message'] = 'An Internal Error Has Occurred';
-			}
-
-			// get variables
-			$vndData = $this->_getVndData($errorData);
-			$viewData = array(
-			    'logRef' => $vndData['error_id'],
-			    'message' => $errorData['message'],
-			    'links' => array(
-				'help' => array(
-				    'href' => Configure::read('RestKit.Documentation.errors') . '/' . $vndData['help_id'],
-				    'title' => 'Error information'
-			)));
-		} else {
-			// add Exception class to the top of the array for readability
-			$errorData = array_merge(array('class' => $errorClass), $errorData);
-
-			//$errorData['class'] = get_class($error); // adding the calling error/exception class seems useful
-			$viewData['debug'] = $errorData;  // only pass debug info to the RestKitView
-		}
-
-		// set up the 'Exception' viewVar so that RestKitJsonView and RestKitXmlView will
-		// detect it and will use _serializeException() instead of default _serialize()
-		$exception['Exception'] = array();
-		array_push($exception['Exception'], $viewData);
-		$this->controller->set($exception);
+		// set the 'Exception' viewVar so that RestKitJsonView and RestKitXmlView will
+		// recognize it and will use _serializeException() instead of the default _serialize()
+		$this->controller->set(array('Exception' => $errorData));
 
 		// set the correct response header
-		$this->_setHttpResponseHeader($errorData['code']);
+		$this->_setHttpResponseHeader($code);
 	}
 
 	/**
@@ -254,21 +242,23 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	/**
 	 * getVndData() is a convenience function to retrieve .....
 	 *
-	 * @param type $errorData
+	 * @param type $code
+	 * @param type $message
 	 * @return type
 	 */
-	private function _getVndData($errorData) {
-		$out['hash'] = $this->_getVndErrorHash($errorData['code'], $errorData['message']);
+	private function _getVndData($code, $message) {
+		$out['hash'] = $this->_getVndErrorHash($code, $message);
 
 		$vndIds = $this->_getVndErrorIds($out['hash']);
 		if ($vndIds) {
 			$out['error_id'] = $vndIds['error_id'];
 			$out['help_id'] = $vndIds['help_id'];
 		} else {
-			$result = $this->_saveVndError($out['hash'], $errorData['code'], $errorData['message']);
+			$result = $this->_saveVndError($out['hash'], $code, $message);
 			$out['error_id'] = $result['error_id'];
 			$out['help_id'] = $result['help_id'];
 		}
+		pr($out);
 		return $out;
 	}
 
