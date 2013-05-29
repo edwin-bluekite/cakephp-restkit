@@ -172,9 +172,10 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	private function _setRichErrorInformation($error) {
 
 		// set up variables
-		$class = get_class($error);  // add the Exception class to improve error readability
+		$class = get_class($error);
+		$code = $error->getCode();
 		$message = $error->getMessage();
-		$code = $error->getCode();  // same $code is used for all error entities in a single vnd.error
+
 		// reset $message in production-mode
 		$debug = Configure::read('debug');
 		if ($debug == 0) {
@@ -190,7 +191,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 		// @todo: CUSTOM JSON DECODES NOT IMPLEMENTED YET (PROBABLY WHEN RESTKIT-EXCEPTIONS ARE DONE)
 		$errorData = json_decode($error->getMessage(), true);
 
-		// if no rich error info was passed construct it ourselves (e.g. for RuntimeExceptions)
+		// NO RICH ERROR INFO passed so construct a single error entity ourselves (e.g. for RuntimeExceptions)
 		if (!is_array($errorData)) {
 			if ($debug == 0) {
 				$vndData = $this->_getVndData($code, $message);
@@ -211,6 +212,51 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 				$errorData[0]['trace'] = $error->getTraceAsString();
 			}
 		}
+
+		// RICH ERROR INFO PASSED, process per error-entity
+		if (is_array($errorData)) {
+
+			$i = 0;
+			foreach ($errorData as $entity) {
+				if ($debug == 0) {
+
+					$vndData = $this->_getVndData($code, $entity['message']);
+					$errorData[$i] = array(
+					    'logRef' => $vndData['error_id'],
+					    'message' => $entity['message'],
+					    'links' => array(
+						'help' => array(
+						    'href' => Configure::read('RestKit.Documentation.errors') . '/' . $vndData['help_id'],
+						    'title' => 'Error information'
+					)));
+				} else {
+					// set required fields so missing will throw an exception
+					$errorData[$i] = array(
+					    'code' => $code,
+					    'class' => $class,
+					    'message' => $entity['message']
+					);
+
+					// add any additionaly passed fields
+					foreach ($entity as $key => $value) {
+						if (!isset($errorData[$i][$key])) {
+							//echo "$key is nog niet gezet, toevoegen\n";
+							$errorData[$i][$key] = $value;
+						}
+					}
+
+					// add some addtional debug-information to the FIRST error only
+					if ($i == 0) {
+						$errorData[0]['file'] = $error->getFile();
+						$errorData[0]['line'] = $error->getLine();
+						$errorData[0]['trace'] = $error->getTraceAsString();
+					}
+				}
+				$i++; // next error-entity
+			}
+		}
+
+
 
 		// set the 'Exception' viewVar so that RestKitJsonView and RestKitXmlView will
 		// recognize it and will use _serializeException() instead of the default _serialize()
@@ -247,18 +293,18 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 * @return type
 	 */
 	private function _getVndData($code, $message) {
-		$out['hash'] = $this->_getVndErrorHash($code, $message);
+		$hash = $this->_getVndErrorHash($code, $message);
 
-		$vndIds = $this->_getVndErrorIds($out['hash']);
+		$vndIds = $this->_getVndErrorIds($hash);
 		if ($vndIds) {
 			$out['error_id'] = $vndIds['error_id'];
 			$out['help_id'] = $vndIds['help_id'];
 		} else {
-			$result = $this->_saveVndError($out['hash'], $code, $message);
+			$result = $this->_saveVndError($hash, $code, $message);
+			$out['hash'] = $hash;
 			$out['error_id'] = $result['error_id'];
 			$out['help_id'] = $result['help_id'];
 		}
-		pr($out);
 		return $out;
 	}
 
@@ -285,7 +331,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 */
 	private function _getVndErrorIds($hash) {
 
-		// see if the vndError
+		// see if the vndError already exists
 		$this->VndError = ClassRegistry::init('RestKit.VndError');
 		$result = $this->VndError->find('first', array(
 		    'conditions' => array(
@@ -315,18 +361,21 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 */
 	private function _saveVndError($hash, $code, $message) {
 
+		$this->VndError->create();
 		$result = $this->VndError->save(array(
 		    'hash' => $hash,
-		    'status_code' => $code, //$errorData['code'],
-		    'message' => $message  //$errorData['message'],
+		    'status_code' => $code,
+		    'message' => $message
 		));
+		$errorId = $this->VndError->id;
 
 		if (!empty($result)) {
-			$data['VndErrorHelp']['vnd_error_id'] = $this->VndError->id;
+			$data['VndErrorHelp']['vnd_error_id'] = $errorId;
+			$this->VndError->VndErrorHelp->create();
 			$this->VndError->VndErrorHelp->save($data);
 
 			return array(
-			    'error_id' => $this->VndError->id,
+			    'error_id' => $errorId,
 			    'help_id' => $this->VndError->VndErrorHelp->id
 			);
 		}
