@@ -127,33 +127,34 @@ class RestKitXmlView extends RestKitView {
 	 */
 	protected function _serializeException($data) {
 
+		$out['error'] = array();
 		$debug = Configure::read('debug');
-		$out = array();
-		foreach ($data as $error) {
-			$temp['error'] = array();
+
+		foreach ($data as $key => $error) {
+			$temp = array();
 
 			if ($debug == 0) {
 				// vnd.error always requires logRef and message
-				$temp['error'] += array('@logRef' => $error['logRef']);
-				$temp['error']['message'] = $error['message'];
+				$temp += array('@logRef' => $error['logRef']);
+				$temp['message'] = $error['message'];
 
 				// OPTIONAL: link
-				$temp['error']['link'] = array();
+				$temp['link'] = array();
 				foreach ($error['links'] as $link => $pair) { // e.g $link = 'help', $pair = array('href' => 'http://your.api.com/help/id')
 					$links = array();
 					foreach ($pair as $key => $value) {
 						$links += array("@rel" => $link, "@$key" => $value);
 					}
-					array_push($temp['error']['link'], $links);
+					array_push($temp['link'], $links);
 				}
-			}else{
-				foreach ($error['debug'] as $key => $value){
-					$temp['error'][$key] = $value;
+			} else {
+				foreach ($error as $key => $value) {
+					$temp[$key] = $value;
 				}
-
 			}
-			array_push($out, $temp);
+			array_push($out['error'], $temp);
 		}
+
 		return Xml::fromArray(array('errors' => $out))->asXML();
 	}
 
