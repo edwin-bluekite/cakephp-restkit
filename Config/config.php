@@ -16,6 +16,7 @@ $config['RestKit'] = array(
 
     'Response' => array(
 	'statusCodes' => array(						// override or append the default CakePHP HTTP Status Codes
+	    422 => 'Unprocessable Entity',				// commonly used REST code for e.g. failed validations
 	    428 => 'Precondition Required',				// proposed draft
 	    429 => 'Too Many Requests',					// proposed draft
 	    431 => 'Request Header Fields Too Large',			// proposed draft
