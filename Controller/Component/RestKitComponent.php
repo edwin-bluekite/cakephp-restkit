@@ -84,6 +84,11 @@ class RestKitComponent extends Component {
 		if (Configure::read('RestKit.Authenticate') == false) {
 			$controller->Auth->allow();
 		}
+
+		// activate the RestKitBehavior for REST requests (required for validation errors)
+		if($controller->request->is('rest')){
+			$this->_loadRestKitBehavior($controller);
+		}
 	}
 
 
@@ -350,4 +355,14 @@ class RestKitComponent extends Component {
 		    }));
 	}
 
+	/**
+	 * _loadRestKitBehavior() attaches the RestKitBehavior to the current model
+	 * (which is used to display validation-errors in vnd.error format).
+	 *
+	 */
+	private function _loadRestKitBehavior(Controller $controller){
+		$model = $controller->modelClass;
+		$modelObject = ClassRegistry::init($model);
+		$modelObject->Behaviors->load('RestKit.RestKit');
+	}
 }
