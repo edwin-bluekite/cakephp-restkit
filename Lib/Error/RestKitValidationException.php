@@ -12,20 +12,15 @@ class RestKitValidationException extends CakeException {
 	 *
 	 * @param string $message
 	 */
-	public function __construct($message = null) {
-
-		// set a default message if none was given
-		if (empty($message)) {
-			$message = 'Validation Error';
-		}
+	public function __construct($message = 'Validation Failed') {
 
 		// re-format the ($model->validationErrors) array
-		if(is_array($message)){
+		if (is_array($message)) {
 			$validationErrors = $message;
 			$out = array();
 			foreach (array_keys($validationErrors) as $field) {
 				$validationMessages = $this->_getFieldValidationMessages($field, $validationErrors[$field]);
-				$out= array_merge_recursive($out, $validationMessages);
+				$out = array_merge_recursive($out, $validationMessages);
 			}
 			$message = json_encode($out);
 		}
@@ -47,6 +42,5 @@ class RestKitValidationException extends CakeException {
 		}
 		return $out;
 	}
-
 
 }
