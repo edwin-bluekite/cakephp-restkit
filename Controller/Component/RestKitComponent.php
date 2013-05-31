@@ -52,7 +52,6 @@ class RestKitComponent extends Component {
 
 	}
 
-
 	/**
 	 * beforeRender() is used to make sure HAL requests are rendered as json/xml
 	 * using the viewless logic in RestKitView.
@@ -60,14 +59,13 @@ class RestKitComponent extends Component {
 	 * @param Controller $controller
 	 */
 	public function beforeRender(Controller $controller) {
-		if($controller->request->is('jsonHal')){
+		if ($controller->request->is('jsonHal')) {
 			$controller->RequestHandler->renderAs($controller, 'json');
 		}
-		if($controller->request->is('xmlHal')){
+		if ($controller->request->is('xmlHal')) {
 			$controller->RequestHandler->renderAs($controller, 'xml');
 		}
 	}
-
 
 	/**
 	 * setup() is used to configure the RestKit component
@@ -84,15 +82,7 @@ class RestKitComponent extends Component {
 		if (Configure::read('RestKit.Authenticate') == false) {
 			$controller->Auth->allow();
 		}
-
-		// activate the RestKitBehavior for REST requests (required for validation errors)
-		if($controller->request->is('rest')){
-			$this->_loadRestKitBehavior($controller);
-		}
 	}
-
-
-
 
 	/**
 	 * setError() is used to buffer error-messages to be included in the response
@@ -355,14 +345,4 @@ class RestKitComponent extends Component {
 		    }));
 	}
 
-	/**
-	 * _loadRestKitBehavior() attaches the RestKitBehavior to the current model
-	 * (which is used to display validation-errors in vnd.error format).
-	 *
-	 */
-	private function _loadRestKitBehavior(Controller $controller){
-		$model = $controller->modelClass;
-		$modelObject = ClassRegistry::init($model);
-		$modelObject->Behaviors->load('RestKit.RestKit');
-	}
 }
