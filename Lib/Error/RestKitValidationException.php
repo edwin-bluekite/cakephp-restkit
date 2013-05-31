@@ -12,7 +12,7 @@ class RestKitValidationException extends CakeException {
 	 *
 	 * @param string $message
 	 */
-	public function __construct($message = 'Validation Failed') {
+	public function __construct($message = 'Validation Failed', $code = 422) {
 
 		// re-format the ($model->validationErrors) array
 		if (is_array($message)) {
