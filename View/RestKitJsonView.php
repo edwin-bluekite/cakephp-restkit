@@ -11,6 +11,18 @@ App::uses('CakeLogInterface', 'Log');
 class RestKitJsonView extends RestKitView {
 
 	/**
+	 * _serializePlain() is here to provide only the most basic functionality for standard json.
+	 * In practice this function will only be used for the 404 errors thrown for clients sending
+	 * requests with the "application/json" Accept Header.
+	 *
+	 * @param type $data
+	 * @return type
+	 */
+	protected function _serializePlain($data) {
+		return json_encode($data);
+	}
+
+	/**
 	 * _serializePlural() generates a HAL-formatted (collection) array from $data before returning it json_encoded
 	 *
 	 * @param type $data

@@ -10,6 +10,18 @@ App::uses('RestKitView', 'Plugin/RestKit/View');
 class RestKitXmlView extends RestKitView {
 
 	/**
+	 * _serializePlain() is here to provide only the most basic functionality for standard xml.
+	 * In practice this function will only be used for the 404 errors thrown for clients sending
+	 * requests with the "application/xml" Accept Header.
+	 *
+	 * @param type $data
+	 * @return type
+	 */
+	protected function _serializePlain($data) {
+		return Xml::fromArray($data)->asXML();
+	}
+
+	/**
 	 * _serializePlural() generates a HAL-formatted (collection) array from $data before returning it as XML
 	 *
 	 * @param type $data
