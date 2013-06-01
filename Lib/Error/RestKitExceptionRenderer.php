@@ -74,23 +74,25 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	protected function _cakeError(CakeException $error) {
 
 		CakeLog::write('error', 'RestKitExceptionRenderer: entered _cakeError');
+
 		if ($this->controller->request->is('rest')) {
 			$this->_setRichErrorInformation($error);
 			$this->_outputMessage($this->template);
-		} else {
-			$url = $this->controller->request->here();
-			$code = ($error->getCode() >= 400 && $error->getCode() < 506) ? $error->getCode() : 500;
-			$this->controller->response->statusCode($code);
-			$this->controller->set(array(
-			    'code' => $code,
-			    'url' => h($url),
-			    'name' => h($error->getMessage()),
-			    'error' => $error,
-			    '_serialize' => array('code', 'url', 'name')
-			));
-			$this->controller->set($error->getAttributes());
-			$this->_outputMessage($this->template);
 		}
+
+		// not rest, render default Cake HTML error
+		$url = $this->controller->request->here();
+		$code = ($error->getCode() >= 400 && $error->getCode() < 506) ? $error->getCode() : 500;
+		$this->controller->response->statusCode($code);
+		$this->controller->set(array(
+		    'code' => $code,
+		    'url' => h($url),
+		    'name' => h($error->getMessage()),
+		    'error' => $error,
+		    '_serialize' => array('code', 'url', 'name')
+		));
+		$this->controller->set($error->getAttributes());
+		$this->_outputMessage($this->template);
 	}
 
 	/**

@@ -59,8 +59,16 @@ class RestKitView extends View {
 
 		// Handle Exceptions first (serialized differently)
 		if (isset($this->viewVars['Exception'])) {
-			$this->_setVndErrorContentTypeHeader();
-			return $this->_serializeException($this->viewVars['Exception']);
+
+			// @todo MAKE NICE !!!!
+			if ($this->request->is('hal')){
+				$this->_setVndErrorContentTypeHeader();
+				return $this->_serializeException($this->viewVars['Exception']);
+			}else{
+				return $this->_serializePlain(array('error' => array(
+				    'code' => 404,
+				    'message' => 'Not Found')));
+			}
 		}
 
 		// always respond with the HAL Content-Type header
