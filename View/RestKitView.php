@@ -61,7 +61,7 @@ class RestKitView extends View {
 		if (isset($this->viewVars['Exception'])) {
 
 			// @todo MAKE NICE !!!!
-			if ($this->request->is('hal')){
+			if ($this->request->is('rest')){
 				$this->_setVndErrorContentTypeHeader();
 				return $this->_serializeException($this->viewVars['Exception']);
 			}else{
