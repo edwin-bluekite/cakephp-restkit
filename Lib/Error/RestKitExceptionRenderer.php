@@ -148,7 +148,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	}
 
 	/**
-	 * error500() overrides the default Cake function so we can respond with rich XML/JSON errormessages
+	 * error500() overrides the default Cake function so we can respond with rich XML/JSON errormessages.
 	 *
 	 * @param CakeException $error
 	 * @return void
@@ -163,7 +163,14 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 			die();
 		}
 
+		// handle plain json/xml errors
+		if ($this->request->is('json') || $this->request->is('xml')) {
+			$this->_setRichErrorInformation($error);
+			$this->_outputMessage($this->template);
+			die();
+		}
 
+		// not rest, render the default Cake HTML error
 		$message = $error->getMessage();
 		if (!Configure::read('debug')) {
 			$message = __d('cake', 'An Internal Error Has Occurred.');
