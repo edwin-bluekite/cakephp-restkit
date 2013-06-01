@@ -17,6 +17,7 @@ App::uses('CakeLog', 'Log');
 class RestKitExceptionRenderer extends ExceptionRenderer {
 
 	public $controller = null;
+	public $request = null;
 	public $template = '';
 	public $error = null;
 	public $method = '';
@@ -30,6 +31,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 */
 	protected function _getController($exception) {
 		$controller = parent::_getController($exception);
+		$request = $controller->request;
 		$controller->response->httpCodes(Configure::read('RestKit.Response.statusCodes'));
 		return $controller;
 	}
@@ -75,13 +77,13 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 
 		CakeLog::write('error', 'RestKitExceptionRenderer: entered _cakeError');
 
-		if ($this->controller->request->is('rest')) {
+		if ($this->request->is('rest')) {
 			$this->_setRichErrorInformation($error);
 			$this->_outputMessage($this->template);
 		}
 
 		// not rest, render default Cake HTML error
-		$url = $this->controller->request->here();
+		$url = $this->request->here();
 		$code = ($error->getCode() >= 400 && $error->getCode() < 506) ? $error->getCode() : 500;
 		$this->controller->response->statusCode($code);
 		$this->controller->set(array(
@@ -105,7 +107,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	public function error400($error) {
 
 		CakeLog::write('error', 'RestKitExceptionRenderer: entered error400');
-		if ($this->controller->request->is('rest')) {
+		if ($this->request->is('rest')) {
 			$this->_setRichErrorInformation($error);
 			$this->_outputMessage($this->template);
 		} else {
@@ -113,7 +115,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 			if (!Configure::read('debug') && $error instanceof CakeException) {
 				$message = __d('cake', 'Not Found');
 			}
-			$url = $this->controller->request->here();
+			$url = $this->request->here();
 			$this->controller->response->statusCode($error->getCode());
 			$this->controller->set(array(
 			    'name' => h($message),
@@ -134,7 +136,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	public function error500($error) {
 
 		CakeLog::write('error', 'RestKitExceptionRenderer: entered error500');
-		if ($this->controller->request->is('rest')) {
+		if ($this->request->is('rest')) {
 			$this->_setRichErrorInformation($error);
 			$this->_outputMessage($this->template);
 		} else {
@@ -143,7 +145,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 			if (!Configure::read('debug')) {
 				$message = __d('cake', 'An Internal Error Has Occurred.');
 			}
-			$url = $this->controller->request->here();
+			$url = $this->request->here();
 			$code = ($error->getCode() > 500 && $error->getCode() < 506) ? $error->getCode() : 500;
 			$this->controller->response->statusCode($code);
 			$this->controller->set(array(
