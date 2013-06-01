@@ -169,41 +169,6 @@ class RestKitComponent extends Component {
 
 		Router::mapResources(self::_getControllers());
 		Router::parseExtensions('json', 'xml');
-		//self::_mapResources();
-		//self::_enableExtensions();
-	}
-
-	/**
-	 * _mapResources() is used to enable REST for controllers + enable prefix routing (if enabled)
-	 */
-	private static function _mapResources() {
-
-		if (Configure::read('RestKit.Request.prefix') == true) {
-			Router::mapResources(
-				array('users', 'placeholders'), array('prefix' => '/' . Configure::read('RestKit.Request.prefix') . '/')
-			);
-
-			// skip loading Cake's default routes when forcePrefix is disabled in config
-			if (Configure::read('RestKit.Request.forcePrefix') == false) {
-				require CAKE . 'Config' . DS . 'routes.php';
-			}
-		} else {
-			Router::mapResources(
-				array('users', 'placeholders')
-			);
-			require CAKE . 'Config' . DS . 'routes.php'; // load CakePHP''s default routes
-		}
-	}
-
-	/**
-	 * _enableExtensions() is used to make sure that only those extensions defined
-	 * in config.php are serviced. All other requests will receive a 404.
-	 *
-	 * @return void
-	 */
-	private static function _enableExtensions() {
-		//Router::setExtensions('json');
-		Router::parseExtensions();
 	}
 
 	/**
