@@ -84,7 +84,7 @@ class RestKitComponent extends Component {
 		$this->addRequestDetectors();
 
 		// force REST Media Types (throw 404 errors for "plain" json/xml)
-		if($this->request->is('json') || $this->request->is('xml')){
+		if (!$this->request->is('rest')) {
 			throw new NotFoundException();
 		}
 
@@ -283,18 +283,12 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 * _addRestDetector() defines a callback-detector that will check if a request is REST
-	 * by checking for json, xml, jsonHal and xmlHal.
+	 * _addHalDetector() defines a callback-detector that will check if a request is HAL
+	 * by checking for jsonHal and xmlHal.
 	 */
-	private function _addRestDetector() {
-		$this->controller->request->addDetector('rest', array('callback' => function(CakeRequest $request) {
-			    if ($request->is('json')) {
-				    return true;
-			    }
+	private function _addHalDetector() {
+		$this->controller->request->addDetector('hal', array('callback' => function(CakeRequest $request) {
 			    if ($request->is('jsonHal')) {
-				    return true;
-			    }
-			    if ($request->is('xml')) {
 				    return true;
 			    }
 			    if ($request->is('xmlHal')) {
@@ -305,15 +299,12 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 * _addHalDetector() defines a callback-detector that will check if a request is HAL
-	 * by checking for jsonHal and xmlHal.
+	 * _addRestDetector() defines a callback-detector that will check if a request is REST
+	 * by checking for any of the implemented REST Media Types (only HAL atm).
 	 */
-	private function _addHalDetector() {
-		$this->controller->request->addDetector('hal', array('callback' => function(CakeRequest $request) {
-			    if ($request->is('jsonHal')) {
-				    return true;
-			    }
-			    if ($request->is('xmlHal')) {
+	private function _addRestDetector() {
+		$this->controller->request->addDetector('rest', array('callback' => function(CakeRequest $request) {
+			    if ($request->is('hal')) {
 				    return true;
 			    }
 			    return false;
