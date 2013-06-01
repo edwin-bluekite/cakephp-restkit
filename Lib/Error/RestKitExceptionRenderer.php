@@ -156,26 +156,28 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	public function error500($error) {
 
 		CakeLog::write('error', 'RestKitExceptionRenderer: entered error500');
+
 		if ($this->request->is('rest')) {
 			$this->_setRichErrorInformation($error);
 			$this->_outputMessage($this->template);
-		} else {
-
-			$message = $error->getMessage();
-			if (!Configure::read('debug')) {
-				$message = __d('cake', 'An Internal Error Has Occurred.');
-			}
-			$url = $this->request->here();
-			$code = ($error->getCode() > 500 && $error->getCode() < 506) ? $error->getCode() : 500;
-			$this->controller->response->statusCode($code);
-			$this->controller->set(array(
-			    'name' => h($message),
-			    'message' => h($url),
-			    'error' => $error,
-			    '_serialize' => array('name', 'message')
-			));
-			$this->_outputMessage('error500');
+			die();
 		}
+
+
+		$message = $error->getMessage();
+		if (!Configure::read('debug')) {
+			$message = __d('cake', 'An Internal Error Has Occurred.');
+		}
+		$url = $this->request->here();
+		$code = ($error->getCode() > 500 && $error->getCode() < 506) ? $error->getCode() : 500;
+		$this->controller->response->statusCode($code);
+		$this->controller->set(array(
+		    'name' => h($message),
+		    'message' => h($url),
+		    'error' => $error,
+		    '_serialize' => array('name', 'message')
+		));
+		$this->_outputMessage('error500');
 	}
 
 	/**
