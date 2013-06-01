@@ -48,16 +48,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 * return void
 	 */
 	public function restKitDISABLED(RestKitException $error) {
-
 		CakeLog::write('error', 'RestKitExceptionRenderer: entered restKit');
-//		pr("_cakeError is of class: " . get_class($error) . "\n");
-//		pr("DATA BELOW:\n");
-//		$serialized = $error->getMessage();
-//		echo "\n\n$serialized";
-//		$unserialized = unserialize($serialized);
-//		pr($unserialized);
-//		die();
-
 		$this->_setRichErrorInformation($error);
 		$this->_outputMessage($this->template);  // make sure RestKitView is used
 	}
