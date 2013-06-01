@@ -20,6 +20,13 @@ class RestKitComponent extends Component {
 	protected $controller;
 
 	/**
+	 * $request holds a reference to the current request
+	 *
+	 * @var CakeRequest
+	 */
+	protected $request;
+
+	/**
 	 * $validationErrors will hold validationErrors
 	 *
 	 * @var array
@@ -27,16 +34,14 @@ class RestKitComponent extends Component {
 	public $validationErrors = array();
 
 	/**
-	 * initialize() is used to setup references to the the calling Controller, add
-	 * Cake Detectors and to enforce REST-only
-	 *
-	 * Note: initialize() is run before the calling Controller's beforeFilter()
+	 * initialize() is run before the calling Controller's beforeFilter()
 	 *
 	 * @param Controller $controller
 	 * @return void
 	 */
 	public function initialize(Controller $controller) {
 		$this->controller = $controller; // create local reference to calling controller
+		$this->request = $controller->request;
 		self::setup($controller); // create references and add Cake Detectors
 	}
 
@@ -77,6 +82,11 @@ class RestKitComponent extends Component {
 
 		// active our custom callback-detectors so we can detect HAL requests
 		$this->addRequestDetectors();
+
+		// force REST Media Types (throw 404 errors for "plain" json/xml)
+		if($this->request->is('json') || $this->request->is('xml')){
+			throw new NotFoundException();
+		}
 
 		// allow public access to everything when 'Authenticate' is set to false in the config file
 		if (Configure::read('RestKit.Authenticate') == false) {
