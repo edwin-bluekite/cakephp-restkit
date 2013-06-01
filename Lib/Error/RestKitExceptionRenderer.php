@@ -23,6 +23,30 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	public $method = '';
 
 	/**
+	 * $statusCodes contains all additional (non Cake core) HTTP Status Codes that
+	 * are required by this plugin. Custom status codes defined in the config file
+	 * will be merged with this set.
+	 *
+	 * @var array
+	 */
+	private $statusCodes = array(
+	    422 => 'Unprocessable Entity'	// commonly used REST code for failed validations
+	);
+
+	/**
+	 * __construct() is used to ......
+	 *
+	 * @param Exception $exception
+	 */
+	public function __construct(Exception $exception) {
+
+		// merge required status codes with additional ones found in the configfile
+		$this->statusCodes = Hash::mergeDiff(Configure::read('RestKit.statusCodes'), $this->statusCodes);
+
+		parent::__construct($exception);
+	}
+
+	/**
 	 * _getController() is an override of the default Cake method (in subclasses) and is used
 	 * to send CUSTOM HTTP Status Codes
 	 *
@@ -32,7 +56,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	protected function _getController($exception) {
 		$this->controller = parent::_getController($exception);
 		$this->request = $this->controller->request;
-		$this->controller->response->httpCodes(Configure::read('RestKit.Response.statusCodes'));
+		$this->controller->response->httpCodes($this->statusCodes);	// make custom statuscodes available for use
 		return $this->controller;
 	}
 
