@@ -30,10 +30,10 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 * @return Controller
 	 */
 	protected function _getController($exception) {
-		$controller = parent::_getController($exception);
-		$request = $controller->request;
-		$controller->response->httpCodes(Configure::read('RestKit.Response.statusCodes'));
-		return $controller;
+		$this->controller = parent::_getController($exception);
+		$this->request = $this->controller->request;
+		$this->controller->response->httpCodes(Configure::read('RestKit.Response.statusCodes'));
+		return $this->controller;
 	}
 
 	/**
@@ -77,12 +77,21 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 
 		CakeLog::write('error', 'RestKitExceptionRenderer: entered _cakeError');
 
+		// handle errors for one of the supported Media Types
 		if ($this->request->is('rest')) {
 			$this->_setRichErrorInformation($error);
 			$this->_outputMessage($this->template);
+			die();
 		}
 
-		// not rest, render default Cake HTML error
+		// handle plain json/xml errors
+		if ($this->request->is('json') || $this->request->is('xml')) {
+			$this->_setRichErrorInformation($error);
+			$this->_outputMessage($this->template);
+			die();
+		}
+
+		// not rest, render the default Cake HTML error
 		$url = $this->request->here();
 		$code = ($error->getCode() >= 400 && $error->getCode() < 506) ? $error->getCode() : 500;
 		$this->controller->response->statusCode($code);
@@ -107,24 +116,35 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	public function error400($error) {
 
 		CakeLog::write('error', 'RestKitExceptionRenderer: entered error400');
+
+		// handle errors for one of the supported Media Types
 		if ($this->request->is('rest')) {
 			$this->_setRichErrorInformation($error);
 			$this->_outputMessage($this->template);
-		} else {
-			$message = $error->getMessage();
-			if (!Configure::read('debug') && $error instanceof CakeException) {
-				$message = __d('cake', 'Not Found');
-			}
-			$url = $this->request->here();
-			$this->controller->response->statusCode($error->getCode());
-			$this->controller->set(array(
-			    'name' => h($message),
-			    'url' => h($url),
-			    'error' => $error,
-			    '_serialize' => array('name', 'url')
-			));
-			$this->_outputMessage('error400');
+			die();
 		}
+
+		// handle plain json/xml errors
+		if ($this->request->is('json') || $this->request->is('xml')) {
+			$this->_setRichErrorInformation($error);
+			$this->_outputMessage($this->template);
+			die();
+		}
+
+		// not rest, render the default Cake HTML error
+		$message = $error->getMessage();
+		if (!Configure::read('debug') && $error instanceof CakeException) {
+			$message = __d('cake', 'Not Found');
+		}
+		$url = $this->request->here();
+		$this->controller->response->statusCode($error->getCode());
+		$this->controller->set(array(
+		    'name' => h($message),
+		    'url' => h($url),
+		    'error' => $error,
+		    '_serialize' => array('name', 'url')
+		));
+		$this->_outputMessage('error400');
 	}
 
 	/**
