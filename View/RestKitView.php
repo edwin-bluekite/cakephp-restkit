@@ -33,6 +33,14 @@ class RestKitView extends View {
 	public $rootKey = null;
 
 	/**
+	 * $contentType will hold the requested (generic) Media Type (e.g. hal, collection, etc.)
+	 *
+	 * @var boolean
+	 */
+	public $mediaType = null;
+
+
+	/**
 	 * Constructor
 	 *
 	 * @param Controller $controller
@@ -72,16 +80,20 @@ class RestKitView extends View {
 		}
 
 		$this->_setContentType(); // set required Content-Type response header
-		// merge passed options
+
+		// merge passed options (e.g for excluding or 'foreigning' fields)
 		if (isset($this->viewVars['options'])) {
 			$this->options = Hash::merge($this->options, $this->viewVars['options']);
 		}
 
-		// $data will be passed to the relevant function in either RestKitJsonView or RestKitXmlView
-		if (Hash::numeric(array_keys($this->viewVars[$this->rootKey]))) {
-			return $this->_serializePlural($this->viewVars[$this->rootKey]);
+		// Data is automagically passed to the corresponding function in either RestKitJsonView or RestKitXmlView
+		switch ($this->mediaType){
+			case 'hal':
+				return $this->_serializeHal($this->viewVars[$this->rootKey]);
+				break;
+			default:
+				throw new NotImplementedException('Response Media Type not implemented');
 		}
-		return $this->_serializeSingular($this->viewVars[$this->rootKey]);
 	}
 
 	/**
@@ -128,11 +140,13 @@ class RestKitView extends View {
 		if ($this->request->is('jsonHal')) {
 			$this->response->type(array('jsonHal' => 'application/hal+json; charset=' . Configure::read('App.encoding')));
 			$this->response->type('jsonHal');
+			$this->mediaType = 'hal';
 			return;
 		}
 		if ($this->request->is('xmlHal')) {
 			$this->response->type(array('xmlHal' => 'application/hal+xml; charset=' . Configure::read('App.encoding')));
 			$this->response->type('xmlHal');
+			$this->mediaType = 'hal';
 		}
 	}
 

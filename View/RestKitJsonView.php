@@ -23,12 +23,26 @@ class RestKitJsonView extends RestKitView {
 	}
 
 	/**
+	 * _serializeHal() is used to pass Cake find() data to the HAL array-formatters before
+	 * returning it as a json encoded string.
+	 *
+	 * @param type $data
+	 * @return string
+	 */
+	protected function _serializeHal($data){
+		if (Hash::numeric(array_keys($this->viewVars[$this->rootKey]))) {
+			return json_encode($this->_makeHalPlural($data));
+		}
+		return json_encode($this->_makeHalSingular($data));
+	}
+
+	/**
 	 * _serializePlural() generates a HAL-formatted (collection) array from $data before returning it json_encoded
 	 *
 	 * @param type $data
 	 * @return type
 	 */
-	protected function _serializePlural($data) {
+	protected function _makeHalPlural($data) {
 
 		$out = array();
 		foreach ($data as $index => $record) {
@@ -53,11 +67,11 @@ class RestKitJsonView extends RestKitView {
 			array_push($out, $temp);
 		}
 
-		// all done, return data as JSON
-		return json_encode(array(
+		// add array base structure
+		return array(
 		    '_links' => $this->_getJsonHalSelf($this->modelClass),
 		    '_embedded' => array(Inflector::tableize($this->rootKey) => $out) // make the key lowercase e.g. user_groups instead of UserGroups
-		));
+		);
 	}
 
 	/**
@@ -66,7 +80,7 @@ class RestKitJsonView extends RestKitView {
 	 * @param type $data
 	 * @return type
 	 */
-	protected function _serializeSingular($data) {
+	protected function _makeHalSingular($data) {
 
 		$out = array();
 
