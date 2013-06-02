@@ -30,7 +30,7 @@ class RestKitJsonView extends RestKitView {
 	 * @return string
 	 */
 	protected function _serializeHal($data){
-		if (Hash::numeric(array_keys($this->viewVars[$this->rootKey]))) {
+		if ($this->plural) {
 			return json_encode($this->_makeHalPlural($data));
 		}
 		return json_encode($this->_makeHalSingular($data));

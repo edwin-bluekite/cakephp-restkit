@@ -33,12 +33,18 @@ class RestKitView extends View {
 	public $rootKey = null;
 
 	/**
-	 * $contentType will hold the requested (generic) Media Type (e.g. hal, collection, etc.)
+	 * $mediaType will hold the requested (generic) Media Type (e.g. hal, collection, etc.)
 	 *
 	 * @var boolean
 	 */
 	public $mediaType = null;
 
+	/**
+	 * $plural will be true for data-collections, false for single entities
+	 *
+	 * @var boolean
+	 */
+	public $plural = null;
 
 	/**
 	 * Constructor
@@ -79,15 +85,23 @@ class RestKitView extends View {
 			}
 		}
 
-		$this->_setContentType(); // set required Content-Type response header
+		// set the required Content-Type response header AND fill $this->mediaType
+		$this->_setContentType();
 
 		// merge passed options (e.g for excluding or 'foreigning' fields)
 		if (isset($this->viewVars['options'])) {
 			$this->options = Hash::merge($this->options, $this->viewVars['options']);
 		}
 
+		// determine if we are processing a data-collection or a single entity
+		if (Hash::numeric(array_keys($this->viewVars[$this->rootKey]))) {
+			$this->plural = true;
+		}else{
+			$this->plural = false;
+		}
+
 		// Data is automagically passed to the corresponding function in either RestKitJsonView or RestKitXmlView
-		switch ($this->mediaType){
+		switch ($this->mediaType) {
 			case 'hal':
 				return $this->_serializeHal($this->viewVars[$this->rootKey]);
 				break;
