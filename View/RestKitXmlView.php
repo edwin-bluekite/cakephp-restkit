@@ -22,12 +22,26 @@ class RestKitXmlView extends RestKitView {
 	}
 
 	/**
+	 * _serializeHal() is used to pass Cake find() data to the HAL array-formatters before
+	 * returning it as XML.
+	 *
+	 * @param type $data
+	 * @return string
+	 */
+	protected function _serializeHal($data){
+		if ($this->plural) {
+			return Xml::fromArray($this->_makeHalPlural($data))->asXML();
+		}
+		return Xml::fromArray($this->_makeHalSingular($data))->asXML();
+	}
+
+	/**
 	 * _serializePlural() generates a HAL-formatted (collection) array from $data before returning it as XML
 	 *
 	 * @param type $data
 	 * @return type
 	 */
-	protected function _serializePlural($data) {
+	protected function _makeHalPlural($data) {
 
 		$out = array();
 		$out['resource'] = $this->_getXmlHal($this->modelClass);
@@ -62,9 +76,7 @@ class RestKitXmlView extends RestKitView {
 			}
 			array_push($out['resource']['resource'], $temp);
 		}
-
-		// all done, return data as XML
-		return Xml::fromArray($out)->asXML();
+		return $out;
 	}
 
 	/**
@@ -73,7 +85,7 @@ class RestKitXmlView extends RestKitView {
 	 * @param type $data
 	 * @return type
 	 */
-	protected function _serializeSingular($data) {
+	protected function _makeHalSingular($data) {
 
 		// self-link first
 		$out = array();
@@ -95,8 +107,7 @@ class RestKitXmlView extends RestKitView {
 				}
 			}
 		}
-		// all done, return data as XML
-		return Xml::fromArray(array('resource' => $out))->asXML();
+		return array('resource' => $out);
 	}
 
 	/**
