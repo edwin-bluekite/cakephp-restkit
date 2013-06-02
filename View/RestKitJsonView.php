@@ -29,7 +29,7 @@ class RestKitJsonView extends RestKitView {
 	 * @param type $data
 	 * @return string
 	 */
-	protected function _serializeHal($data){
+	protected function _serializeHal($data) {
 		if ($this->plural) {
 			return json_encode($this->_makeHalPlural($data));
 		}
@@ -37,7 +37,7 @@ class RestKitJsonView extends RestKitView {
 	}
 
 	/**
-	 * _serializePlural() generates a HAL-formatted (collection) array from $data before returning it json_encoded
+	 * _makeHalPlural() generates a HAL-formatted (collection) array from $data before returning it json_encoded
 	 *
 	 * @param type $data
 	 * @return type
@@ -75,7 +75,7 @@ class RestKitJsonView extends RestKitView {
 	}
 
 	/**
-	 * _serializeSingular() generates a HAL-formatted (entity) array from $data before returning it json_encoded
+	 * _makeHalSingular() generates a HAL-formatted (entity) array from $data before returning it json_encoded
 	 *
 	 * @param type $data
 	 * @return type

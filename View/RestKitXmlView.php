@@ -28,7 +28,7 @@ class RestKitXmlView extends RestKitView {
 	 * @param type $data
 	 * @return string
 	 */
-	protected function _serializeHal($data){
+	protected function _serializeHal($data) {
 		if ($this->plural) {
 			return Xml::fromArray($this->_makeHalPlural($data))->asXML();
 		}
@@ -36,7 +36,7 @@ class RestKitXmlView extends RestKitView {
 	}
 
 	/**
-	 * _serializePlural() generates a HAL-formatted (collection) array from $data before returning it as XML
+	 * _makeHalPlural() generates a HAL-formatted (collection) array from $data before returning it as XML
 	 *
 	 * @param type $data
 	 * @return type
@@ -80,7 +80,7 @@ class RestKitXmlView extends RestKitView {
 	}
 
 	/**
-	 * _serializeSingular() generates a HAL-formatted (entity) array from $data before returning it as XML
+	 * _makeHalSingular() generates a HAL-formatted (entity) array from $data before returning it as XML
 	 *
 	 * @param type $data
 	 * @return type
