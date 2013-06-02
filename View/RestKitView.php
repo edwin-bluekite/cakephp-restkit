@@ -61,19 +61,17 @@ class RestKitView extends View {
 		if (isset($this->viewVars['Exception'])) {
 
 			// @todo MAKE NICE !!!!
-			if ($this->request->is('rest')){
+			if ($this->request->is('rest')) {
 				$this->_setVndErrorContentTypeHeader();
 				return $this->_serializeException($this->viewVars['Exception']);
-			}else{
+			} else {
 				return $this->_serializePlain(array('error' => array(
-				    'code' => 404,
-				    'message' => 'Not Found')));
+						'code' => 404,
+						'message' => 'Not Found')));
 			}
 		}
 
-		// always respond with the HAL Content-Type header
-		$this->_setHalContentTypeHeader();
-
+		$this->_setContentType(); // set required Content-Type response header
 		// merge passed options
 		if (isset($this->viewVars['options'])) {
 			$this->options = Hash::merge($this->options, $this->viewVars['options']);
@@ -123,10 +121,10 @@ class RestKitView extends View {
 	}
 
 	/**
-	 * _setHalContentTypeHeader() is used to respond with the correct HAL Content-Type header
-	 * ("application/hal+json" or "application/hal+xml").
+	 * _setContentType() automatically sets the correct Content-Type in the response
+	 * based on the requested Media Type.
 	 */
-	private function _setHalContentTypeHeader() {
+	private function _setContentType() {
 		if ($this->request->is('jsonHal')) {
 			$this->response->type(array('jsonHal' => 'application/hal+json; charset=' . Configure::read('App.encoding')));
 			$this->response->type('jsonHal');
