@@ -26,7 +26,7 @@ class RestKitView extends View {
 	);
 
 	/**
-	 * $rootKey with name of the collection/entity. E.g. Posts or Post
+	 * $rootKey with name of the collection or resource (e.g. Posts or Post)
 	 *
 	 * @var boolean
 	 */
@@ -40,7 +40,7 @@ class RestKitView extends View {
 	public $mediaType = null;
 
 	/**
-	 * $plural will be true for data-collections, false for single entities
+	 * $plural will be true for data-collections, false for a single resource
 	 *
 	 * @var boolean
 	 */
@@ -93,7 +93,7 @@ class RestKitView extends View {
 			$this->options = Hash::merge($this->options, $this->viewVars['options']);
 		}
 
-		// determine if we are processing a data-collection or a single entity
+		// determine if we are processing a data-collection or a single resource
 		if (Hash::numeric(array_keys($this->viewVars[$this->rootKey]))) {
 			$this->plural = true;
 		}else{

@@ -75,7 +75,7 @@ class RestKitJsonView extends RestKitView {
 	}
 
 	/**
-	 * _makeHalSingular() generates a HAL-formatted (entity) array from $data before returning it json_encoded
+	 * _makeHalSingular() generates a HAL-formatted (single resource) array from $data before returning it json_encoded
 	 *
 	 * @param type $data
 	 * @return type

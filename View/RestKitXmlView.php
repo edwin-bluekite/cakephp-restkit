@@ -80,7 +80,7 @@ class RestKitXmlView extends RestKitView {
 	}
 
 	/**
-	 * _makeHalSingular() generates a HAL-formatted (entity) array from $data before returning it as XML
+	 * _makeHalSingular() generates a HAL-formatted (single resource) array from $data before returning it as XML
 	 *
 	 * @param type $data
 	 * @return type
