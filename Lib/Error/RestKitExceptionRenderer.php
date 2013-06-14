@@ -92,23 +92,33 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 
 		CakeLog::write('error', 'RestKitExceptionRenderer: entered _cakeError');
 
-		// handle errors for one of the supported Media Types
-		if ($this->request->is('rest')) {
-			$this->_setRichErrorInformation($error);
-			$this->_outputMessage($this->template);
-			die();
-		}
-
-		// handle plain json/xml errors
-		if ($this->request->is('json') || $this->request->is('xml')) {
-			$this->_setRichErrorInformation($error);
-			$this->_outputMessage($this->template);
-			die();
-		}
-
-		// not rest, render the default Cake HTML error
-		$url = $this->request->here();
+		// process dynamic Cake error variables regardless of following logic
 		$code = ($error->getCode() >= 400 && $error->getCode() < 506) ? $error->getCode() : 500;
+
+		// handle REST errors
+		if ($this->request->is('rest')) {
+
+			// prepare error-data for vnd.error response
+			if ($this->request->is('vndError')){
+				$this->_setRichErrorInformation($error);
+				$this->_setHttpResponseHeader($code);
+				$this->_outputMessage($this->template);
+				die();
+			}
+
+			// prepare data for plain json/xml response
+			$errorData = array(
+			    'code' => $code,
+			    'message' => $error->getMessage()
+			);
+			$this->controller->set(array('Exception' => $errorData));
+			$this->_setHttpResponseHeader($code);
+			$this->_outputMessage($this->template);
+			die();
+		}
+
+		// not REST, render the default Cake HTML error
+		$url = $this->request->here();
 		$this->controller->response->statusCode($code);
 		$this->controller->set(array(
 		    'code' => $code,
@@ -132,7 +142,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 
 		CakeLog::write('error', 'RestKitExceptionRenderer: entered error400');
 
-		// process the message regardless of following logic
+		// process dynamic Cake error variables regardless of following logic
 		$message = $error->getMessage();
 		if (!Configure::read('debug') && $error instanceof CakeException) {
 			$message = __d('cake', 'Not Found');
@@ -182,7 +192,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 
 		CakeLog::write('error', 'RestKitExceptionRenderer: entered error500');
 
-		// process the default error variables regardless of following logic
+		// process dynamic Cake error variables regardless of following logic
 		$message = $error->getMessage();
 		if (!Configure::read('debug')) {
 			$message = __d('cake', 'An Internal Error Has Occurred.');
