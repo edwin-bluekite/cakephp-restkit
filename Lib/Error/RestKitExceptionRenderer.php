@@ -132,9 +132,24 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 
 		CakeLog::write('error', 'RestKitExceptionRenderer: entered error400');
 
-		// handle errors for one of the supported Media Types
+		// handle REST errors
 		if ($this->request->is('rest')) {
-			$this->_setRichErrorInformation($error);
+
+			// prepare error-data for vnd.error response
+			if ($this->request->is('vndError')){
+				$this->_setRichErrorInformation($error);
+				$this->_setHttpResponseHeader($error->getCode());
+				$this->_outputMessage($this->template);
+				die();
+			}
+
+			// prepare data for plain json/xml response
+			$errorData = array(
+			    'code' => $error->getCode(),
+			    'message' => $error->getMessage()
+			);
+			$this->controller->set(array('Exception' => $errorData));
+			$this->_setHttpResponseHeader($error->getCode());
 			$this->_outputMessage($this->template);
 			die();
 		}
@@ -309,9 +324,6 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 		// set the 'Exception' viewVar so that RestKitJsonView and RestKitXmlView will
 		// recognize it and will use _serializeException() instead of the default _serialize()
 		$this->controller->set(array('Exception' => $errorData));
-
-		// set the correct response header
-		$this->_setHttpResponseHeader($code);
 	}
 
 	/**

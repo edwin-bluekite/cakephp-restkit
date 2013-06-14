@@ -74,15 +74,14 @@ class RestKitView extends View {
 		// Handle Exceptions first (serialized differently)
 		if (isset($this->viewVars['Exception'])) {
 
-			// @todo MAKE NICE !!!!
-			if ($this->request->is('rest')) {
+			// generate response in vnd.error format
+			if ($this->request->is('vndError')) {
 				$this->_setVndErrorContentTypeHeader();
 				return $this->_serializeException($this->viewVars['Exception']);
-			} else {
-				return $this->_serializePlain(array('error' => array(
-						'code' => 404,
-						'message' => 'Not Found')));
 			}
+
+			// generate response in plain json/xml format
+			return $this->_serializePlain(array('error' => $this->viewVars['Exception']));
 		}
 
 		// set the required Content-Type response header AND fill $this->mediaType
