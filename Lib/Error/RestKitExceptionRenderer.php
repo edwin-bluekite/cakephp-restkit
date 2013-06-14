@@ -195,20 +195,13 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 		// handle REST errors
 		if ($this->request->is('rest')) {
 
-			// prepare error-data for vnd.error response
-			if ($this->request->is('vndError')) {
+			// prepare 'Exception' data for the view
+			if ($this->request->is('vndError')) {    // vnd.error
 				$this->_setVndErrorInformation($error);
-				$this->_setHttpResponseHeader($error->getCode());
-				$this->_outputMessage($this->template);
-				die();
+				$this->_setHttpResponseHeader($code);
+			} else {
+				$this->_setPlainErrorInformation($code, $message);
 			}
-
-			// prepare data for plain json/xml response
-			$errorData = array(
-			    'code' => $error->getCode(),
-			    'message' => $message
-			);
-			$this->controller->set(array('Exception' => $errorData));
 			$this->_setHttpResponseHeader($error->getCode());
 			$this->_outputMessage($this->template);
 			die();
