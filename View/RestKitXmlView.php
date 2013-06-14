@@ -1,6 +1,6 @@
 <?php
 
-App::uses('RestKitView', 'Plugin/RestKit/View');
+App::uses('RestKitView', 'RestKit.View');
 
 /**
  * RestKitXmlView is responsible for the viewless rendering of XML responses in HAL format

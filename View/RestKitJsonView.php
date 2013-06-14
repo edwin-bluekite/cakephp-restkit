@@ -1,6 +1,6 @@
 <?php
 
-App::uses('RestKitView', 'Plugin/RestKit/View');
+App::uses('RestKitView', 'RestKit.View');
 App::uses('CakeLogInterface', 'Log');
 
 /**
