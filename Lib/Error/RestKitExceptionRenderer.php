@@ -132,6 +132,12 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 
 		CakeLog::write('error', 'RestKitExceptionRenderer: entered error400');
 
+		// process the message regardless of following logic
+		$message = $error->getMessage();
+		if (!Configure::read('debug') && $error instanceof CakeException) {
+			$message = __d('cake', 'Not Found');
+		}
+
 		// handle REST errors
 		if ($this->request->is('rest')) {
 
@@ -146,7 +152,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 			// prepare data for plain json/xml response
 			$errorData = array(
 			    'code' => $error->getCode(),
-			    'message' => $error->getMessage()
+			    'message' => $message
 			);
 			$this->controller->set(array('Exception' => $errorData));
 			$this->_setHttpResponseHeader($error->getCode());
@@ -154,18 +160,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 			die();
 		}
 
-		// handle plain json/xml errors
-		if ($this->request->is('json') || $this->request->is('xml')) {
-			$this->_setRichErrorInformation($error);
-			$this->_outputMessage($this->template);
-			die();
-		}
-
-		// not rest, render the default Cake HTML error
-		$message = $error->getMessage();
-		if (!Configure::read('debug') && $error instanceof CakeException) {
-			$message = __d('cake', 'Not Found');
-		}
+		// not REST, continue using Cake default logic
 		$url = $this->request->here();
 		$this->controller->response->statusCode($error->getCode());
 		$this->controller->set(array(
