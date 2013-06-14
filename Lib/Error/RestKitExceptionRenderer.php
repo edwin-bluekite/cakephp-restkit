@@ -30,7 +30,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 * @var array
 	 */
 	private $statusCodes = array(
-	    422 => 'Unprocessable Entity'	// commonly used REST code for failed validations
+	    422 => 'Unprocessable Entity' // commonly used REST code for failed validations
 	);
 
 	/**
@@ -56,7 +56,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	protected function _getController($exception) {
 		$this->controller = parent::_getController($exception);
 		$this->request = $this->controller->request;
-		$this->controller->response->httpCodes($this->statusCodes);	// make custom statuscodes available for use
+		$this->controller->response->httpCodes($this->statusCodes); // make custom statuscodes available for use
 		return $this->controller;
 	}
 
@@ -99,7 +99,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 		if ($this->request->is('rest')) {
 
 			// prepare error-data for vnd.error response
-			if ($this->request->is('vndError')){
+			if ($this->request->is('vndError')) {
 				$this->_setVndErrorInformation($error);
 				$this->_setHttpResponseHeader($code);
 				$this->_outputMessage($this->template);
@@ -151,20 +151,13 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 		// handle REST errors
 		if ($this->request->is('rest')) {
 
-			// prepare error-data for vnd.error response
-			if ($this->request->is('vndError')){
+			// prepare 'Exception' data for the view
+			if ($this->request->is('vndError')) {    // vnd.error
 				$this->_setVndErrorInformation($error);
 				$this->_setHttpResponseHeader($error->getCode());
-				$this->_outputMessage($this->template);
-				die();
+			} else {
+				$this->_setPlainErrorInformation($error->getCode(), $message);
 			}
-
-			// prepare data for plain json/xml response
-			$errorData = array(
-			    'code' => $error->getCode(),
-			    'message' => $message
-			);
-			$this->controller->set(array('Exception' => $errorData));
 			$this->_setHttpResponseHeader($error->getCode());
 			$this->_outputMessage($this->template);
 			die();
@@ -203,7 +196,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 		if ($this->request->is('rest')) {
 
 			// prepare error-data for vnd.error response
-			if ($this->request->is('vndError')){
+			if ($this->request->is('vndError')) {
 				$this->_setVndErrorInformation($error);
 				$this->_setHttpResponseHeader($error->getCode());
 				$this->_outputMessage($this->template);
@@ -231,6 +224,20 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 		    '_serialize' => array('name', 'message')
 		));
 		$this->_outputMessage('error500');
+	}
+
+	/**
+	 * _setPlainErrorInformation() is used to set the 'Exception' viewVar for plain
+	 * json/xml errors
+	 *
+	 * @param int $code
+	 * @param string $message
+	 */
+	private function _setPlainErrorInformation($code = null, $message = null) {
+		$this->controller->set(array('Exception' => array(
+			'code' => $code,
+			'message' => $message
+		)));
 	}
 
 	/**
