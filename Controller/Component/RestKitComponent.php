@@ -83,11 +83,6 @@ class RestKitComponent extends Component {
 		// active our custom callback-detectors so we can detect HAL requests
 		$this->addRequestDetectors();
 
-		// force REST Media Types (throw 404 errors for "plain" json/xml)
-		if (!$this->request->is('rest')) {
-			throw new NotFoundException();
-		}
-
 		// allow public access to everything when 'Authenticate' is set to false in the config file
 		if (Configure::read('RestKit.Authenticate') == false) {
 			$controller->Auth->allow();
@@ -204,32 +199,19 @@ class RestKitComponent extends Component {
 	 * _addRequestDetectors() ....
 	 */
 	protected function addRequestDetectors() {
-		$this->_addJsonDetector();
+
+		// HAL requests
 		$this->_addJsonHalDetector();
-		$this->_addXmlDetector();
 		$this->_addXmlHalDetector();
 		$this->_addHalDetector();
+
+		// plain xml/json requests
+		$this->_addJsonPlainDetector();
+		$this->_addXmlPlainDetector();
+		$this->_addPlainDetector();
+
+		// any of the supported REST requests
 		$this->_addRestDetector();
-	}
-
-	/**
-	 * _addJsonDetector() defines a callback-detector for detecting "plain" json requests
-	 * by checking for a ".json" extension or a preffered "application/json" Accept Header.
-	 */
-	private function _addJsonDetector() {
-		$this->controller->request->addDetector('json', array('callback' => function(CakeRequest $request) {
-
-			    // check for extension ".json"
-			    if (isset($request->params['ext']) && $request->params['ext'] === 'json') {
-				    return true;
-			    }
-			    // check if the preferred Accept Header is json
-			    $accepts = $request->accepts();
-			    if ($accepts[0] == 'application/json') {
-				    return true;
-			    }
-			    return false;
-		    }));
 	}
 
 	/**
@@ -241,26 +223,6 @@ class RestKitComponent extends Component {
 
 			    // check for an explicit JSON-HAL Accept Header
 			    if ($request->accepts('application/hal+json')) {
-				    return true;
-			    }
-			    return false;
-		    }));
-	}
-
-	/**
-	 * _addXmlDetector() defines a callback-detector for detecting "plain" xml requests
-	 * by checking for an ".xml" extension or preferred "application/xml" Accept Header.
-	 */
-	private function _addXmlDetector() {
-		$this->controller->request->addDetector('xml', array('callback' => function(CakeRequest $request) {
-
-			    // check for extension ".xml"
-			    if (isset($request->params['ext']) && $request->params['ext'] === 'xml') {
-				    return true;
-			    }
-			    // check if the prefered Accept Header is xml
-			    $accepts = $request->accepts();
-			    if ($accepts[0] == 'application/xml') {
 				    return true;
 			    }
 			    return false;
@@ -299,11 +261,80 @@ class RestKitComponent extends Component {
 	}
 
 	/**
+	 * _addJsonDetector() defines a callback-detector for detecting "plain" json requests
+	 * by checking for a ".json" extension or a preffered "application/json" Accept Header.
+	 */
+	private function _addJsonPlainDetector() {
+		$this->controller->request->addDetector('json', array('callback' => function(CakeRequest $request) {
+
+			    // cannot be plain if a specific Media Tyoe is detected
+			    if ($request->is('hal')) {
+				    return false;
+			    }
+
+			    // check for extension ".json"
+			    if (isset($request->params['ext']) && $request->params['ext'] === 'json') {
+				    return true;
+			    }
+			    // check if the preferred Accept Header is json
+			    $accepts = $request->accepts();
+			    if ($accepts[0] == 'application/json') {
+				    return true;
+			    }
+			    return false;
+		    }));
+	}
+
+	/**
+	 * _addXmlDetector() defines a callback-detector for detecting "plain" xml requests
+	 * by checking for an ".xml" extension or preferred "application/xml" Accept Header.
+	 */
+	private function _addXmlPlainDetector() {
+		$this->controller->request->addDetector('xml', array('callback' => function(CakeRequest $request) {
+
+			    // cannot be plain if a specific Media Tyoe is detected
+			    if ($request->is('hal')) {
+				    return false;
+			    }
+
+			    // check for extension ".xml"
+			    if (isset($request->params['ext']) && $request->params['ext'] === 'xml') {
+				    return true;
+			    }
+			    // check if the prefered Accept Header is xml
+			    $accepts = $request->accepts();
+			    if ($accepts[0] == 'application/xml') {
+				    return true;
+			    }
+			    return false;
+		    }));
+	}
+
+	/**
+	 * _addPlainDetector() defines a callback-detector that will check if a request is plain json/xml
+	 * by checking for json and xml.
+	 */
+	private function _addPlainDetector() {
+		$this->controller->request->addDetector('plain', array('callback' => function(CakeRequest $request) {
+			    if ($request->is('json')) {
+				    return true;
+			    }
+			    if ($request->is('xml')) {
+				    return true;
+			    }
+			    return false;
+		    }));
+	}
+
+	/**
 	 * _addRestDetector() defines a callback-detector that will check if a request is REST
 	 * by checking for any of the implemented REST Media Types (only HAL atm).
 	 */
 	private function _addRestDetector() {
 		$this->controller->request->addDetector('rest', array('callback' => function(CakeRequest $request) {
+			    if ($request->is('plain')) {
+				    return true;
+			    }
 			    if ($request->is('hal')) {
 				    return true;
 			    }

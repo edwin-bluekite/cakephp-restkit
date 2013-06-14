@@ -93,10 +93,15 @@ class RestKitView extends View {
 			$this->options = Hash::merge($this->options, $this->viewVars['options']);
 		}
 
-		// determine if we are processing a data-collection or a single resource
+		// process plain json/xml requests the "standard" way
+		if ($this->request->is('plain')) {
+			return $this->_serializePlain($this->viewVars[$this->rootKey]);
+		}
+
+		// specific Media Type requested, determine if we are processing a data-collection or a single resource
 		if (Hash::numeric(array_keys($this->viewVars[$this->rootKey]))) {
 			$this->plural = true;
-		}else{
+		} else {
 			$this->plural = false;
 		}
 
