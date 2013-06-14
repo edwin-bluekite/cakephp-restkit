@@ -101,11 +101,10 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 			// prepare 'Exception' data for the view
 			if ($this->request->is('vndError')) {    // vnd.error
 				$this->_setVndError($error);
-				$this->_setHttpResponseHeader($error->getCode());
 			} else {
 				$this->_setPlainError($code, $error->getMessage());
 			}
-			$this->_setHttpResponseHeader($error->getCode());
+			$this->_setHttpResponseHeader($code);
 			$this->_outputMessage($this->template);
 			die();
 		}
@@ -147,7 +146,6 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 			// prepare 'Exception' data for the view
 			if ($this->request->is('vndError')) {    // vnd.error
 				$this->_setVndError($error);
-				$this->_setHttpResponseHeader($error->getCode());
 			} else {
 				$this->_setPlainError($error->getCode(), $message);
 			}
@@ -191,11 +189,10 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 			// prepare 'Exception' data for the view
 			if ($this->request->is('vndError')) {    // vnd.error
 				$this->_setVndError($error);
-				$this->_setHttpResponseHeader($code);
 			} else {
 				$this->_setPlainError($code, $message);
 			}
-			$this->_setHttpResponseHeader($error->getCode());
+			$this->_setHttpResponseHeader($code);
 			$this->_outputMessage($this->template);
 			die();
 		}
