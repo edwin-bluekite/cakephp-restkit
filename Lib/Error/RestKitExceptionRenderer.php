@@ -73,7 +73,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 */
 	public function restKitDISABLED(RestKitException $error) {
 		CakeLog::write('error', 'RestKitExceptionRenderer: entered restKit');
-		$this->_setVndErrorInformation($error);
+		$this->_setVndError($error);
 		$this->_outputMessage($this->template);  // make sure RestKitView is used
 	}
 
@@ -100,10 +100,10 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 
 			// prepare 'Exception' data for the view
 			if ($this->request->is('vndError')) {    // vnd.error
-				$this->_setVndErrorInformation($error);
+				$this->_setVndError($error);
 				$this->_setHttpResponseHeader($error->getCode());
 			} else {
-				$this->_setPlainErrorInformation($code, $error->getMessage());
+				$this->_setPlainError($code, $error->getMessage());
 			}
 			$this->_setHttpResponseHeader($error->getCode());
 			$this->_outputMessage($this->template);
@@ -146,10 +146,10 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 
 			// prepare 'Exception' data for the view
 			if ($this->request->is('vndError')) {    // vnd.error
-				$this->_setVndErrorInformation($error);
+				$this->_setVndError($error);
 				$this->_setHttpResponseHeader($error->getCode());
 			} else {
-				$this->_setPlainErrorInformation($error->getCode(), $message);
+				$this->_setPlainError($error->getCode(), $message);
 			}
 			$this->_setHttpResponseHeader($error->getCode());
 			$this->_outputMessage($this->template);
@@ -190,10 +190,10 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 
 			// prepare 'Exception' data for the view
 			if ($this->request->is('vndError')) {    // vnd.error
-				$this->_setVndErrorInformation($error);
+				$this->_setVndError($error);
 				$this->_setHttpResponseHeader($code);
 			} else {
-				$this->_setPlainErrorInformation($code, $message);
+				$this->_setPlainError($code, $message);
 			}
 			$this->_setHttpResponseHeader($error->getCode());
 			$this->_outputMessage($this->template);
@@ -213,13 +213,12 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	}
 
 	/**
-	 * _setPlainErrorInformation() is used to set the 'Exception' viewVar for plain
-	 * json/xml errors
+	 * _setPlainError() is used to set the 'Exception' viewVar for plain json/xml errors
 	 *
 	 * @param int $code
 	 * @param string $message
 	 */
-	private function _setPlainErrorInformation($code = null, $message = null) {
+	private function _setPlainError($code = null, $message = null) {
 		$this->controller->set(array('Exception' => array(
 			'code' => $code,
 			'message' => $message
@@ -227,8 +226,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	}
 
 	/**
-	 * _setVndErrorInformation() is used to set up extra variables required for producing
-	 * rich REST error-information
+	 * _setVndError() is used to set the 'Exception' viewVar required for producing rich vnd.error responses
 	 *
 	 * Please note that only the serialized variables will appear in the JSON/XML output and
 	 * will appear in the same order as they are serialized here.
@@ -241,7 +239,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 *
 	 * @param CakeException $error
 	 */
-	private function _setVndErrorInformation($error) {
+	private function _setVndError($error) {
 
 		// set up variables
 		$class = get_class($error);
