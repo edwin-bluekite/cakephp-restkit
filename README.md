@@ -1,6 +1,6 @@
 # CakePHP RestKit plugin
 
-A stateless REST API plugin for CakePHP using the HAL convention
+A truly stateless REST API plugin for CakePHP
 
 ## Version ##
 
@@ -9,6 +9,7 @@ Version 0.1 (tag 0.1.0) contains a working prototype.
 **Features:**
 
 * Supports REST Maturity Level 3
+* Respond in any requested format (e.g. HAL) based on Accept Header
 * Rich exception rendering (HAL compatible vnd.error specification)
 * Basic authentication (enable in the config, docs will follow)
 * Custom HTTP Status Codes
@@ -157,6 +158,7 @@ The RestKit plugin comes with a couple of useful request detectors you can use i
 
 * **json**: returns true for standard json requests
 * **xml**: returns true for standard xml requests
+* **plain**: returns true if the request is either json or xml
 * **jsonHal**: returns true for HAL-specific json requests
 * **xmlHal**: returns true for HAL-specific xml requests
 * **hal**: returns true if the request is either jsonHal or xmlHal
