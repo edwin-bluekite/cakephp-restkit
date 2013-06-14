@@ -90,31 +90,6 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 * setError() is used to buffer error-messages to be included in the response
-	 *
-	 * @param string $optionName is the exact name of the URI option (e.g. limit, sort, etc)
-	 * @param string $type to specify the type of error (e.g. optionValidation)
-	 * @param string $message with informative information about the error
-	 */
-	public function setError($type, $optionName, $message) {
-		array_push($this->_errors, array('Error' => array(
-			'type' => $type,
-			'option' => $optionName,
-			'message' => $message,
-			'moreInfo' => 'http://ecloud.alt3.virtual/errors/23532'
-		)));
-	}
-
-	/**
-	 * _getErrors() ......
-	 *
-	 * @todo add documentation
-	 */
-	public function getErrors() {
-		return $this->_errors;
-	}
-
-	/**
 	 * hasOption() checks the query parameters against a given keyname
 	 *
 	 * @param string $key with name of the query parameter (e.g. order, limit)
