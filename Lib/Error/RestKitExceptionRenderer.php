@@ -160,7 +160,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 			die();
 		}
 
-		// not REST, continue using Cake default logic
+		// not REST, render the default Cake HTML error
 		$url = $this->request->here();
 		$this->controller->response->statusCode($error->getCode());
 		$this->controller->set(array(
@@ -182,26 +182,37 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 
 		CakeLog::write('error', 'RestKitExceptionRenderer: entered error500');
 
-		if ($this->request->is('rest')) {
-			$this->_setRichErrorInformation($error);
-			$this->_outputMessage($this->template);
-			die();
-		}
-
-		// handle plain json/xml errors
-		if ($this->request->is('json') || $this->request->is('xml')) {
-			$this->_setRichErrorInformation($error);
-			$this->_outputMessage($this->template);
-			die();
-		}
-
-		// not rest, render the default Cake HTML error
+		// process the default error variables regardless of following logic
 		$message = $error->getMessage();
 		if (!Configure::read('debug')) {
 			$message = __d('cake', 'An Internal Error Has Occurred.');
 		}
-		$url = $this->request->here();
 		$code = ($error->getCode() > 500 && $error->getCode() < 506) ? $error->getCode() : 500;
+
+		// handle REST errors
+		if ($this->request->is('rest')) {
+
+			// prepare error-data for vnd.error response
+			if ($this->request->is('vndError')){
+				$this->_setRichErrorInformation($error);
+				$this->_setHttpResponseHeader($error->getCode());
+				$this->_outputMessage($this->template);
+				die();
+			}
+
+			// prepare data for plain json/xml response
+			$errorData = array(
+			    'code' => $error->getCode(),
+			    'message' => $message
+			);
+			$this->controller->set(array('Exception' => $errorData));
+			$this->_setHttpResponseHeader($error->getCode());
+			$this->_outputMessage($this->template);
+			die();
+		}
+
+		// not REST, render the default Cake HTML error
+		$url = $this->request->here();
 		$this->controller->response->statusCode($code);
 		$this->controller->set(array(
 		    'name' => h($message),
