@@ -212,6 +212,11 @@ class RestKitComponent extends Component {
 
 		// any of the supported REST requests
 		$this->_addRestDetector();
+
+		// add specific error Media Types
+		$this->_addJsonVndErrorDetector();
+		$this->_addXmlVndErrorDetector();
+		$this->_addVndErrorDetector();
 	}
 
 	/**
@@ -336,6 +341,54 @@ class RestKitComponent extends Component {
 				    return true;
 			    }
 			    if ($request->is('hal')) {
+				    return true;
+			    }
+			    return false;
+		    }));
+	}
+
+	/**
+	 * _addJsonVndErrorDetector() defines a callback-detector for detecting vnd.error requests by
+	 * checking for an "application/vnd.error+json" Accept Header.
+	 */
+	private function _addJsonVndErrorDetector() {
+		$this->controller->request->addDetector('jsonVndError', array('callback' => function(CakeRequest $request) {
+
+			    // check if the prefered Accept Header is xml
+			    $accepts = $request->accepts();
+			    if (in_array('application/vnd.error+json', $accepts)) {
+				    return true;
+			    }
+			    return false;
+		    }));
+	}
+
+	/**
+	 * _addXmlVndErrorDetector() defines a callback-detector for detecting vnd.error requests by
+	 * checking for an "application/vnd.error+xml" Accept Header.
+	 */
+	private function _addXmlVndErrorDetector() {
+		$this->controller->request->addDetector('xmlVndError', array('callback' => function(CakeRequest $request) {
+
+			    // check if the prefered Accept Header is xml
+			    $accepts = $request->accepts();
+			    if (in_array('application/vnd.error+xml', $accepts)) {
+				    return true;
+			    }
+			    return false;
+		    }));
+	}
+
+	/**
+	 * _addVndErrorDetector() defines a callback-detector that will check if a request accepts either
+	 * json or xml vnd.error format.
+	 */
+	private function _addVndErrorDetector() {
+		$this->controller->request->addDetector('vndError', array('callback' => function(CakeRequest $request) {
+			    if ($request->is('jsonVndError')) {
+				    return true;
+			    }
+			    if ($request->is('xmlVndError')) {
 				    return true;
 			    }
 			    return false;
