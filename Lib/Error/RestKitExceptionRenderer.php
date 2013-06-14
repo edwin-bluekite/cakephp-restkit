@@ -73,7 +73,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 */
 	public function restKitDISABLED(RestKitException $error) {
 		CakeLog::write('error', 'RestKitExceptionRenderer: entered restKit');
-		$this->_setRichErrorInformation($error);
+		$this->_setVndErrorInformation($error);
 		$this->_outputMessage($this->template);  // make sure RestKitView is used
 	}
 
@@ -100,7 +100,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 
 			// prepare error-data for vnd.error response
 			if ($this->request->is('vndError')){
-				$this->_setRichErrorInformation($error);
+				$this->_setVndErrorInformation($error);
 				$this->_setHttpResponseHeader($code);
 				$this->_outputMessage($this->template);
 				die();
@@ -153,7 +153,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 
 			// prepare error-data for vnd.error response
 			if ($this->request->is('vndError')){
-				$this->_setRichErrorInformation($error);
+				$this->_setVndErrorInformation($error);
 				$this->_setHttpResponseHeader($error->getCode());
 				$this->_outputMessage($this->template);
 				die();
@@ -204,7 +204,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 
 			// prepare error-data for vnd.error response
 			if ($this->request->is('vndError')){
-				$this->_setRichErrorInformation($error);
+				$this->_setVndErrorInformation($error);
 				$this->_setHttpResponseHeader($error->getCode());
 				$this->_outputMessage($this->template);
 				die();
@@ -234,7 +234,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	}
 
 	/**
-	 * _setRichErrorInformation() is used to set up extra variables required for producing
+	 * _setVndErrorInformation() is used to set up extra variables required for producing
 	 * rich REST error-information
 	 *
 	 * Please note that only the serialized variables will appear in the JSON/XML output and
@@ -248,7 +248,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 *
 	 * @param CakeException $error
 	 */
-	private function _setRichErrorInformation($error) {
+	private function _setVndErrorInformation($error) {
 
 		// set up variables
 		$class = get_class($error);
