@@ -4,13 +4,13 @@ A truly stateless REST API plugin for CakePHP
 
 ## Version ##
 
-Version 0.1 (tag 0.1.0) contains a working prototype.
+0.2 contains a fully working prototype
 
 **Features:**
 
 * Supports REST Maturity Level 3
-* Respond in any requested format (e.g. HAL) based on Accept Header
-* Rich exception rendering (HAL compatible vnd.error specification)
+* Supports multiple response-formats based on Accept Headers (e.g. plain, HAL, etc.)
+* Plain or rich exception rendering (e.g. the HAL compatible vnd.error specification)
 * Basic authentication (enable in the config, docs will follow)
 * Custom HTTP Status Codes
 * Validation rules for query parameters
