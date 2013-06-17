@@ -1,75 +1,206 @@
 <?php
+
 App::uses('Controller', 'Controller');
+App::uses('RequestHandlerComponent', 'Controller/Component');
+App::uses('AuthComponent', 'Controller/Component');
+App::uses('RestKitComponent', 'RestKit.Controller/Component');
 App::uses('CakeRequest', 'Network');
 App::uses('CakeResponse', 'Network');
-App::uses('ComponentCollection', 'Controller');
-App::uses('RestKitComponent', 'RestKit.Controller/Component');
+App::uses('Router', 'Routing');
+App::uses('JsonView', 'View');
+App::uses('XmlView', 'View');
 
-// A fake controller to test against
-class TestRestKitController extends Controller {
-	public $paginate = null;
+/**
+ * RestKitTestController class (prev. RequestHandlerTestController)
+ *
+ * @package       RestKit.Test.Case.Controller.Component
+ */
+class RestKitTestController extends Controller {
+
+	/**
+	 * uses property
+	 *
+	 * @var mixed null
+	 */
+	public $uses = null; // does not use a table !!!!!
+
 }
 
-/*
- * @todo add tests for single, multi, single array combination
- * @todo add hardening tests for null, false, array arguments
+/**
+ * CustomJsonView class
+ */
+class CustomJsonView extends JsonView {
+
+}
+
+/**
+ * RestKitComponentTest class (prev. RequestHandlerComponentTest)
  */
 class RestKitComponentTest extends CakeTestCase {
-	public $RestKitComponent = null;
-	public $Controller = null;
 
+	public $Controller;
+	public $RequestHandler;
+	public $RestKit;
+	public $Auth;
+
+	/**
+	 * setUp method
+	 *
+	 * @return void
+	 */
 	public function setUp() {
 		parent::setUp();
-		// Setup our component and fake test controller
-		$Collection = new ComponentCollection();
-		$this->RestKitComponent = new ExtendedRestKitComponent($Collection);
-		$CakeRequest = new CakeRequest();
-		$CakeResponse = new CakeResponse();
-		$this->Controller = new TestRestKitController($CakeRequest, $CakeResponse);
-		$this->RestKitComponent->startup($this->Controller);
+		$this->_init();
 	}
 
-	public function testReformatArrays() {
+	/**
+	 * init method
+	 *
+	 * @return void
+	 */
+	protected function _init() {
+		$request = new CakeRequest('controller_posts/index');
+		$response = new CakeResponse();
+		$this->Controller = new RestKitTestController($request, $response);
+		$this->Controller->constructClasses();
 
-		// Test reformatting of single dimension find('all') result
-		$findAllResult  = array(
-			array('User' => array('id' => 1, 'username' => 'bravo_kernel')),
-			array('User' => array('id' => 2, 'username' => 'ceeram'))
-		);
-		$expected = array('users' => array(
-			'user' => array(
-				array( 'id' => 1, 'username' => 'bravo_kernel'),
-				array( 'id' => 2, 'username' => 'ceeram'))));
+		$this->RequestHandler = new RequestHandlerComponent($this->Controller->Components);
 
-		$output = $this->RestKitComponent->formatCakeFindResultForSimpleXML($findAllResult);
-		$this->assertSame($expected, $output);
+		// set up Auth
+		$collection = new ComponentCollection();
+		$collection->init($this->Controller);
+		$this->Controller->Auth = new AuthComponent($collection);
 
+		$this->RestKit = new RestKitComponent($this->Controller->Components);
+		$this->_extensions = Router::extensions();
+	}
 
-		// Test reformatting of single dimension findById() result
-		$findByIdResult = array('User' => array(
-				'id' => 1,
-				'username' => 'bravo_kernel'));
-
-		$expected = array('users' => array(
-			'user' => array(
-				array( 'id' => 1, 'username' => 'bravo_kernel'))));
-
-		$output = $this->RestKitComponent->formatCakeFindResultForSimpleXML($findByIdResult);
-		$this->assertSame($expected, $output);
-		}
-
+	/**
+	 * tearDown method
+	 *
+	 * @return void
+	 */
 	public function tearDown() {
 		parent::tearDown();
-		// Clean up after we're done
-		unset($this->RestKitComponent);
-		unset($this->Controller);
+		unset($this->RestKit, $this->Controller);
+		if (!headers_sent()) {
+			header('Content-type: text/html'); //reset content type.
+		}
+		call_user_func_array('Router::parseExtensions', $this->_extensions);
 	}
-}
 
-class ExtendedRestKitComponent extends RestKitComponent {
+	/**
+	 * Test custom callback detector for plain JSON
+	 *
+	 * @return void
+	 */
+	public function testJsonPlainDetector() {
+		$this->assertNull($this->RequestHandler->ext);
+		$_SERVER['HTTP_ACCEPT'] = 'application/json';
 
-	// placeholder example for testing protected component functions
-	//public function publicSetViewData($arrays) {
-	//	return $this->_setViewData($arrays);
-	//}
+		$this->RequestHandler->initialize($this->Controller);
+		$this->Controller->Auth->initialize($this->Controller);
+		$this->RestKit->initialize($this->Controller);
+		$this->assertTrue($this->Controller->request->is('json'));
+	}
+
+	/**
+	 * Test custom callback detector for plain XML
+	 *
+	 * @return void
+	 */
+	public function testJsonXmlDetector() {
+		$this->assertNull($this->RequestHandler->ext);
+		$_SERVER['HTTP_ACCEPT'] = 'application/xml';
+
+		$this->RequestHandler->initialize($this->Controller);
+		$this->Controller->Auth->initialize($this->Controller);
+		$this->RestKit->initialize($this->Controller);
+		$this->assertTrue($this->Controller->request->is('xml'));
+	}
+
+	/**
+	 * Test custom callback detector for either plain JSON or plain XML
+	 *
+	 * @todo ADD check for both JSON and XML header
+	 * @return void
+	 */
+	public function testPlainDetector() {
+		$this->assertNull($this->RequestHandler->ext);
+		$this->RequestHandler->initialize($this->Controller);
+		$this->Controller->Auth->initialize($this->Controller);
+		$this->RestKit->initialize($this->Controller);
+
+		$_SERVER['HTTP_ACCEPT'] = 'application/xml';
+		$this->assertTrue($this->Controller->request->is('plain'));
+
+		$_SERVER['HTTP_ACCEPT'] = 'application/json';
+		$this->assertTrue($this->Controller->request->is('plain'));
+
+		$_SERVER['HTTP_ACCEPT'] = 'application/other';
+		$this->assertFalse($this->Controller->request->is('plain'));
+	}
+
+
+	/**
+	 * Test custom callback detector for json-HAL
+	 *
+	 * @return void
+	 */
+	public function testJsonHalDetector() {
+		$this->assertNull($this->RequestHandler->ext);
+		$_SERVER['HTTP_ACCEPT'] = 'application/hal+json';
+		//Router::parseExtensions('json', 'xml');
+
+		$this->RequestHandler->initialize($this->Controller);
+		$this->Controller->Auth->initialize($this->Controller);
+		$this->RestKit->initialize($this->Controller);
+		$this->assertTrue($this->Controller->request->is('jsonHal'));
+	}
+
+	/**
+	 * Test custom callback detector for xml-HAL
+	 *
+	 * @return void
+	 */
+	public function testXmlHalDetector() {
+		$this->assertNull($this->RequestHandler->ext);
+		$_SERVER['HTTP_ACCEPT'] = 'application/hal+xml';
+
+		$this->RequestHandler->initialize($this->Controller);
+		$this->Controller->Auth->initialize($this->Controller);
+		$this->RestKit->initialize($this->Controller);
+		$this->assertTrue($this->Controller->request->is('xmlHal'));
+	}
+
+	/**
+	 * Test custom callback detector for JSON vnd.error
+	 *
+	 * @return void
+	 */
+	public function testJsonVndErrorDetector() {
+		$this->assertNull($this->RequestHandler->ext);
+		$_SERVER['HTTP_ACCEPT'] = 'application/vnd.error+json';
+
+		$this->RequestHandler->initialize($this->Controller);
+		$this->Controller->Auth->initialize($this->Controller);
+		$this->RestKit->initialize($this->Controller);
+		$this->assertTrue($this->Controller->request->is('jsonVndError'));
+	}
+
+	/**
+	 * Test custom callback detector for XML vnd.error
+	 *
+	 * @return void
+	 */
+	public function testXmlVndErrorDetector() {
+		$this->assertNull($this->RequestHandler->ext);
+		$_SERVER['HTTP_ACCEPT'] = 'application/vnd.error+xml';
+
+		$this->RequestHandler->initialize($this->Controller);
+		$this->Controller->Auth->initialize($this->Controller);
+		$this->RestKit->initialize($this->Controller);
+		$this->assertTrue($this->Controller->request->is('xmlVndError'));
+	}
+
 }
