@@ -1,6 +1,6 @@
 # CakePHP RestKit plugin
 
-A truly stateless REST API plugin for CakePHP
+An adaptive stateless REST API plugin for CakePHP
 
 ## Version ##
 
@@ -8,14 +8,13 @@ A truly stateless REST API plugin for CakePHP
 
 **Features:**
 
-* Supports REST Maturity Level 3
-* Supports multiple response-formats based on Accept Headers (e.g. plain, HAL, etc.)
-* Plain or rich exception rendering (e.g. the HAL compatible vnd.error specification)
-* Basic authentication (enable in the config, docs will follow)
-* Custom HTTP Status Codes
-* Validation rules for query parameters
-* Automatically REST-enables all controllers in your app
-* Please note that this readme is quite outdated (will update soon)
+* adaptive response rendering (present data as plain, HAL, Collection, etc.)
+* adaptive error response rendering (present errors as plain, vnd.error, api-problem, etc)
+* fully supports REST Maturity Level 3
+* basic authentication (enable in the config, docs will follow)
+* custom HTTP Status Codes
+* validation rules for query parameters
+* automatically REST-enables all controllers in your app
 
 ## Requirements
 
