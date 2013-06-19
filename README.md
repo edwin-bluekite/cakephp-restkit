@@ -4,7 +4,7 @@ An adaptive stateless REST API plugin for CakePHP
 
 ## Version ##
 
-0.2 contains a fully working prototype
+Until version 1.0 please use the current -dev branch.
 
 **Features:**
 
@@ -23,9 +23,7 @@ An adaptive stateless REST API plugin for CakePHP
 
 ## Support
 
-Do you have a question, want to see a feature or have you found a bug?
-
-Please visit our Github Issue page at https://github.com/alt3/cakephp-restkit/issues.
+Please use the Github issues if you found a bug, need a feature or have a question.
 
 ## Installation
 
@@ -146,24 +144,6 @@ If validation fails you can access the validation errors using $this->RestKit->v
 
     if (!$this->RestKit->validOption('limit')){
         pr($this->RestKit->validationErrors);
-    }
-
-### Detectors
-
-The RestKit plugin comes with a couple of useful request detectors you can use in your application.
-
-* **json**: returns true for standard json requests
-* **xml**: returns true for standard xml requests
-* **plain**: returns true if the request is either json or xml
-* **jsonHal**: returns true for HAL-specific json requests
-* **xmlHal**: returns true for HAL-specific xml requests
-* **hal**: returns true if the request is either jsonHal or xmlHal
-* **rest**: returns true if the request is either json, xml, jsonHal or xmlHal
-
-Usage example:
-
-    if ($this->request->is('jsonHal')){
-        echo "Request was made with the 'application/hal+json' Accept Header";
     }
 
 # Links
