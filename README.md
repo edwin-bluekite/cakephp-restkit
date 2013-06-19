@@ -36,10 +36,7 @@ Clone the repository into /app/Plugin/RestKit:
 Load the following components in /app/Controller/AppController.php
 
     public $components = array(
-        'RequestHandler' => array(
-		'viewClassMap' => array(
-		    'json' => 'RestKit.RestKitJson',
-		    'xml' => 'RestKit.RestKitXml')),
+        'RequestHandler',
         'Auth' => array(
              'authenticate' => array(
                  'Basic' => array(

@@ -54,7 +54,9 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 * setup() is used to configure the RestKit component
+	 * setup() is used to configure the RestKit component.
+	 *
+	 * RequestHandler::prefers() will be set based on the extension or Accept Header
 	 *
 	 * @param Controller $controller
 	 * @return void
@@ -92,6 +94,8 @@ class RestKitComponent extends Component {
 
 	public function _setViewClassMap() {
 		return($this->controller->RequestHandler->viewClassMap(array(
+			    'json' => 'RestKit.RestKitJson',
+			    'xml' => 'RestKit.RestKitXml',
 			    'jsonHal' => 'RestKit.RestKitJson',
 			    'xmlHal' => 'RestKit.RestKitXml',
 			    'jsonVndError' => 'RestKit.RestKitJson',
@@ -153,7 +157,7 @@ class RestKitComponent extends Component {
 	 * routes() is used to provide the functionality normally used in routes.php like
 	 * setting the allowed extensions, prefixing, etc.
 	 *
-	 * @todo automagically mapResources for all parent controllers
+	 * NOTE: parseExtensions() MUST be set or viewless rendering will fail
 	 */
 	public static function routes() {
 
