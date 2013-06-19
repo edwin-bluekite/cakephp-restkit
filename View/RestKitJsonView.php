@@ -11,22 +11,16 @@ App::uses('CakeLogInterface', 'Log');
 class RestKitJsonView extends RestKitView {
 
 	/**
+	 * __construct() is used to set the correct Accept response-header based on the prefered Accept request-header
 	 *
 	 * @param Controller $controller
 	 */
 	public function __construct(Controller $controller = null) {
-		echo "Entered RestKitJsonView\n";
-
 		parent::__construct($controller);
 		if (isset($controller->response) && $controller->response instanceof CakeResponse) {
-			echo "viewClassMap below:\n";
-			pr($this->controller->RequestHandler->viewClassMap());
-			$controller->response->type('json');
-		}else{
-			echo "nothing set m8\n";
+			$controller->response->type($controller->RequestHandler->prefers());
 		}
 	}
-
 
 	/**
 	 * _serializePlain() is here to provide only the most basic functionality for standard json.

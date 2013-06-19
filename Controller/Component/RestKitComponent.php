@@ -5,10 +5,6 @@ App::uses('RestOption', 'Model');
 
 /**
  * Description of RestKitComponent
- *
- * @todo (might have to) build in a check in validateUriOptions for this->controller->$modelName->validates() because it will break if the model has $uses = false or array()
- *
- * @author bravo-kernel
  */
 class RestKitComponent extends Component {
 
@@ -65,24 +61,20 @@ class RestKitComponent extends Component {
 	 */
 	protected function setup(Controller $controller) {
 
-		$this->_addMimeTypes();		// 100% working because: prefers() returns jsonHal when sending Accept application/hal+json
-		$this->_setViewClassMap();	// point viewClass to RestKit.RestKitView
-
+		$this->_addMimeTypes();  // add all custom Media Types so we can render based on Accept headers
+		$this->_setViewClassMap(); // point viewClass to RestKit.RestKitView
 		// output some sanity-checks
-		echo "1. client prefers " . $this->controller->RequestHandler->prefers() . "\n";
-		echo "2. " . $this->controller->RequestHandler->prefers() . " maps to: " . $this->controller->RequestHandler->mapAlias($this->controller->RequestHandler->prefers()) . "\n";
+//		echo "1. client prefers " . $this->controller->RequestHandler->prefers() . "\n";
+//		echo "2. " . $this->controller->RequestHandler->prefers() . " maps to: " . $this->controller->RequestHandler->mapAlias($this->controller->RequestHandler->prefers()) . "\n";
 		echo "3. viewClassMap below:\n";
 		pr($this->controller->RequestHandler->viewClassMap());
-
 		// allow public access to everything when 'Authenticate' is set to false in the config file
 		if (Configure::read('RestKit.Authenticate') == false) {
 			$controller->Auth->allow();
 		}
 
-		// respond with jsonHal
-//		$this->controller->response->type(array('jsonHal' => 'application/hal+json; charset=' . Configure::read('App.encoding')));
-		//$this->controller->response->type('jsonHal');
-//		$this->controller->RequestHandler->renderAs($controller, 'jsonHal');
+		// renderAs() absolutely required to render viewless based on Accept headers
+		$this->controller->RequestHandler->renderAs($controller, $this->controller->RequestHandler->prefers());
 	}
 
 	/**
@@ -98,10 +90,14 @@ class RestKitComponent extends Component {
 		));
 	}
 
-	public function _setViewClassMap(){
-		return($this->controller->RequestHandler->viewClassMap(array('jsonHal' => 'RestKit.RestKitJson')));
+	public function _setViewClassMap() {
+		return($this->controller->RequestHandler->viewClassMap(array(
+			    'jsonHal' => 'RestKit.RestKitJson',
+			    'xmlHal' => 'RestKit.RestKitXml',
+			    'jsonVndError' => 'RestKit.RestKitJson',
+			    'xmlVndEror' => 'RestKit.RestKitXml',
+		)));
 	}
-
 
 	/**
 	 * hasOption() checks the query parameters against a given keyname
@@ -192,7 +188,6 @@ class RestKitComponent extends Component {
 		//$this->_addRestDetector();
 	}
 
-
 	/**
 	 * _addRestDetector() defines a callback-detector that will check if a request is REST
 	 * by checking for any of the implemented REST Media Types (only HAL atm).
@@ -209,10 +204,9 @@ class RestKitComponent extends Component {
 		    }));
 	}
 
-	public function isRest(){
+	public function isRest() {
 		return true;
 	}
-
 
 	/**
 	 * prefers() checks Accept Headers based on the generic name
@@ -236,7 +230,6 @@ class RestKitComponent extends Component {
 				return false;
 		}
 	}
-
 
 	/**
 	 * _prefersPlain() checks if the prefered response type is is plain json/xml.

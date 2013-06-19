@@ -1,4 +1,4 @@
-IS(<?php
+<?php
 
 App::uses('View', 'View');
 App::uses('CakeLogInterface', 'Log');
@@ -52,18 +52,16 @@ class RestKitView extends View {
 	 * @param Controller $controller
 	 */
 	public function __construct(Controller $controller = null) {
-
-		echo "Entered RestKitView\n";
-		
 		parent::__construct($controller);
 
 		if (!isset($this->viewVars['Exception'])) {
-			echo "EXCEPTION\n";
-			pr ($this->viewVars['_serialize']);
-
 			$this->modelClass = Inflector::singularize(current($this->viewVars['_serialize']));
 			$this->rootKey = current($this->viewVars['_serialize']);
 		}
+
+		// no exception, respond with same Accept header
+		$controller->response->type($controller->RequestHandler->prefers());
+
 	}
 
 	/**
@@ -81,6 +79,7 @@ class RestKitView extends View {
 		if (isset($this->viewVars['Exception'])) {
 
 			// generate response in vnd.error format
+			// KAN GEEN ACCEPTS() MEER ZIJN !!!
 			if ($this->request->accepts('vndError')) {
 				$this->_setVndErrorContentTypeHeader();
 				return $this->_serializeException($this->viewVars['Exception']);
