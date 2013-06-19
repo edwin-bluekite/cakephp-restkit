@@ -11,6 +11,24 @@ App::uses('CakeLogInterface', 'Log');
 class RestKitJsonView extends RestKitView {
 
 	/**
+	 *
+	 * @param Controller $controller
+	 */
+	public function __construct(Controller $controller = null) {
+		echo "Entered RestKitJsonView\n";
+
+		parent::__construct($controller);
+		if (isset($controller->response) && $controller->response instanceof CakeResponse) {
+			echo "viewClassMap below:\n";
+			pr($this->controller->RequestHandler->viewClassMap());
+			$controller->response->type('json');
+		}else{
+			echo "nothing set m8\n";
+		}
+	}
+
+
+	/**
 	 * _serializePlain() is here to provide only the most basic functionality for standard json.
 	 * In practice this function will only be used for the 404 errors thrown for clients sending
 	 * requests with the "application/json" Accept Header.

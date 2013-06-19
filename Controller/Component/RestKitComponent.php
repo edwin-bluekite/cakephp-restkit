@@ -42,7 +42,7 @@ class RestKitComponent extends Component {
 	public function initialize(Controller $controller) {
 		$this->controller = $controller; // create local reference to calling controller
 		$this->request = $controller->request;
-		self::setup($controller); // create references and add Cake Detectors
+		$this->setup($controller);
 	}
 
 	/**
@@ -58,21 +58,6 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 * beforeRender() is used to make sure HAL requests are rendered as json/xml
-	 * using the viewless logic in RestKitView.
-	 *
-	 * @param Controller $controller
-	 */
-	public function beforeRender(Controller $controller) {
-		if ($controller->request->is('jsonHal')) {
-			$controller->RequestHandler->renderAs($controller, 'json');
-		}
-		if ($controller->request->is('xmlHal')) {
-			$controller->RequestHandler->renderAs($controller, 'xml');
-		}
-	}
-
-	/**
 	 * setup() is used to configure the RestKit component
 	 *
 	 * @param Controller $controller
@@ -80,14 +65,43 @@ class RestKitComponent extends Component {
 	 */
 	protected function setup(Controller $controller) {
 
-		// active our custom callback-detectors so we can detect HAL requests
-		$this->addRequestDetectors();
+		$this->_addMimeTypes();		// 100% working because: prefers() returns jsonHal when sending Accept application/hal+json
+		$this->_setViewClassMap();	// point viewClass to RestKit.RestKitView
+
+		// output some sanity-checks
+		echo "1. client prefers " . $this->controller->RequestHandler->prefers() . "\n";
+		echo "2. " . $this->controller->RequestHandler->prefers() . " maps to: " . $this->controller->RequestHandler->mapAlias($this->controller->RequestHandler->prefers()) . "\n";
+		echo "3. viewClassMap below:\n";
+		pr($this->controller->RequestHandler->viewClassMap());
 
 		// allow public access to everything when 'Authenticate' is set to false in the config file
 		if (Configure::read('RestKit.Authenticate') == false) {
 			$controller->Auth->allow();
 		}
+
+		// respond with jsonHal
+//		$this->controller->response->type(array('jsonHal' => 'application/hal+json; charset=' . Configure::read('App.encoding')));
+		//$this->controller->response->type('jsonHal');
+//		$this->controller->RequestHandler->renderAs($controller, 'jsonHal');
 	}
+
+	/**
+	 * _addMimeTypes() is used to define our custom Media Types so they become
+	 * available in getMimeType() and mapType()
+	 */
+	public function _addMimeTypes() {
+		$this->controller->response->type(array(
+		    'jsonHal' => 'application/hal+json',
+		    'xmlHal' => 'application/hal+xml',
+		    'jsonVndError' => 'application/vnd.error+json',
+		    'xmlVndError' => 'application/vnd.error+xml'
+		));
+	}
+
+	public function _setViewClassMap(){
+		return($this->controller->RequestHandler->viewClassMap(array('jsonHal' => 'RestKit.RestKitJson')));
+	}
+
 
 	/**
 	 * hasOption() checks the query parameters against a given keyname
@@ -174,137 +188,10 @@ class RestKitComponent extends Component {
 	 * _addRequestDetectors() ....
 	 */
 	protected function addRequestDetectors() {
-
-		// HAL requests
-		$this->_addJsonHalDetector();
-		$this->_addXmlHalDetector();
-		$this->_addHalDetector();
-
-		// plain xml/json requests
-		$this->_addJsonPlainDetector();
-		$this->_addXmlPlainDetector();
-		$this->_addPlainDetector();
-
 		// any of the supported REST requests
-		$this->_addRestDetector();
-
-		// add specific error Media Types
-		$this->_addJsonVndErrorDetector();
-		$this->_addXmlVndErrorDetector();
-		$this->_addVndErrorDetector();
+		//$this->_addRestDetector();
 	}
 
-	/**
-	 * _addJsonHalDetector() defines a callback-detector for detecting JSON-HAL requests
-	 * by checking for an "application/hal+json" Accept Header.
-	 */
-	private function _addJsonHalDetector() {
-		$this->controller->request->addDetector('jsonHal', array('callback' => function(CakeRequest $request) {
-
-			    // check for an explicit JSON-HAL Accept Header
-			    if ($request->accepts('application/hal+json')) {
-				    return true;
-			    }
-			    return false;
-		    }));
-	}
-
-	/**
-	 * _addXmlHalDetector() defines a callback-detector for detecting XML-HAL requests
-	 * by checking for an "application/hal+xml" Accept Header.
-	 */
-	private function _addXmlHalDetector() {
-		$this->controller->request->addDetector('xmlHal', array('callback' => function(CakeRequest $request) {
-
-			    // check for an explicit XML-HAL Accept Header
-			    if ($request->accepts('application/hal+xml')) {
-				    return true;
-			    }
-			    return false;
-		    }));
-	}
-
-	/**
-	 * _addHalDetector() defines a callback-detector that will check if a request is HAL
-	 * by checking for jsonHal and xmlHal.
-	 */
-	private function _addHalDetector() {
-		$this->controller->request->addDetector('hal', array('callback' => function(CakeRequest $request) {
-			    if ($request->is('jsonHal')) {
-				    return true;
-			    }
-			    if ($request->is('xmlHal')) {
-				    return true;
-			    }
-			    return false;
-		    }));
-	}
-
-	/**
-	 * _addJsonDetector() defines a callback-detector for detecting "plain" json requests
-	 * by checking for a ".json" extension or a preffered "application/json" Accept Header.
-	 */
-	private function _addJsonPlainDetector() {
-		$this->controller->request->addDetector('json', array('callback' => function(CakeRequest $request) {
-
-			    // cannot be plain if a specific Media Tyoe is detected
-			    if ($request->is('hal')) {
-				    return false;
-			    }
-
-			    // check for extension ".json"
-			    if (isset($request->params['ext']) && $request->params['ext'] === 'json') {
-				    return true;
-			    }
-			    // check if the preferred Accept Header is json
-			    $accepts = $request->accepts();
-			    if ($accepts[0] == 'application/json') {
-				    return true;
-			    }
-			    return false;
-		    }));
-	}
-
-	/**
-	 * _addXmlDetector() defines a callback-detector for detecting "plain" xml requests
-	 * by checking for an ".xml" extension or preferred "application/xml" Accept Header.
-	 */
-	private function _addXmlPlainDetector() {
-		$this->controller->request->addDetector('xml', array('callback' => function(CakeRequest $request) {
-
-			    // cannot be plain if a specific Media Tyoe is detected
-			    if ($request->is('hal')) {
-				    return false;
-			    }
-
-			    // check for extension ".xml"
-			    if (isset($request->params['ext']) && $request->params['ext'] === 'xml') {
-				    return true;
-			    }
-			    // check if the prefered Accept Header is xml
-			    $accepts = $request->accepts();
-			    if ($accepts[0] == 'application/xml') {
-				    return true;
-			    }
-			    return false;
-		    }));
-	}
-
-	/**
-	 * _addPlainDetector() defines a callback-detector that will check if a request is plain json/xml
-	 * by checking for json and xml.
-	 */
-	private function _addPlainDetector() {
-		$this->controller->request->addDetector('plain', array('callback' => function(CakeRequest $request) {
-			    if ($request->is('json')) {
-				    return true;
-			    }
-			    if ($request->is('xml')) {
-				    return true;
-			    }
-			    return false;
-		    }));
-	}
 
 	/**
 	 * _addRestDetector() defines a callback-detector that will check if a request is REST
@@ -312,7 +199,7 @@ class RestKitComponent extends Component {
 	 */
 	private function _addRestDetector() {
 		$this->controller->request->addDetector('rest', array('callback' => function(CakeRequest $request) {
-			    if ($request->is('plain')) {
+			    if ($this->request->is('plain')) {
 				    return true;
 			    }
 			    if ($request->is('hal')) {
@@ -322,52 +209,86 @@ class RestKitComponent extends Component {
 		    }));
 	}
 
-	/**
-	 * _addJsonVndErrorDetector() defines a callback-detector for detecting vnd.error requests by
-	 * checking for an "application/vnd.error+json" Accept Header.
-	 */
-	private function _addJsonVndErrorDetector() {
-		$this->controller->request->addDetector('jsonVndError', array('callback' => function(CakeRequest $request) {
+	public function isRest(){
+		return true;
+	}
 
-			    // check if the prefered Accept Header is xml
-			    $accepts = $request->accepts();
-			    if (in_array('application/vnd.error+json', $accepts)) {
-				    return true;
-			    }
-			    return false;
-		    }));
+
+	/**
+	 * prefers() checks Accept Headers based on the generic name
+	 *
+	 * @param type $type
+	 * @return boolean
+	 */
+	public function prefers($type = null) {
+		switch ($type) {
+			case 'plain':
+				return $this->_prefersPlain();
+				break;
+			case 'hal':
+				echo "checking HAL\n";
+				return $this->_prefersHal();
+				break;
+			case 'vndError':
+				return $this->_prefersVndError();
+				break;
+			default:
+				return false;
+		}
+	}
+
+
+	/**
+	 * _prefersPlain() checks if the prefered response type is is plain json/xml.
+	 *
+	 * @return boolean
+	 */
+	private function _prefersPlain() {
+
+		// specific Media Types alwasys supersede plain requests
+		if ($this->_prefersHal()) {
+			return false;
+		}
+		if ($this->controller->RequestHandler->accepts('json')) {
+			return true;
+		}
+		if ($this->controller->RequestHandler->accepts('xml')) {
+			return true;
+		}
+		return false;
 	}
 
 	/**
-	 * _addXmlVndErrorDetector() defines a callback-detector for detecting vnd.error requests by
-	 * checking for an "application/vnd.error+xml" Accept Header.
+	 * _prefersPlain() checks if the prefered response Media Type is HAL
+	 *
+	 * @return boolean
 	 */
-	private function _addXmlVndErrorDetector() {
-		$this->controller->request->addDetector('xmlVndError', array('callback' => function(CakeRequest $request) {
-
-			    // check if the prefered Accept Header is xml
-			    $accepts = $request->accepts();
-			    if (in_array('application/vnd.error+xml', $accepts)) {
-				    return true;
-			    }
-			    return false;
-		    }));
+	private function _prefersHal() {
+		echo "entered _prefersHal\n";
+		if ($this->controller->RequestHandler->accepts('jsonHal')) {
+			echo "request accepts jsonHal\n";
+			return true;
+		}
+		if ($this->controller->RequestHandler->accepts('xmlHal')) {
+			return true;
+		}
+		return false;
 	}
 
 	/**
-	 * _addVndErrorDetector() defines a callback-detector that will check if a request accepts either
-	 * json or xml vnd.error format.
+	 * _prefersPlain() checks if the prefered error response Media Type is vnd.error
+	 *
+	 * @return boolean
 	 */
-	private function _addVndErrorDetector() {
-		$this->controller->request->addDetector('vndError', array('callback' => function(CakeRequest $request) {
-			    if ($request->is('jsonVndError')) {
-				    return true;
-			    }
-			    if ($request->is('xmlVndError')) {
-				    return true;
-			    }
-			    return false;
-		    }));
+	private function _prefersVndError() {
+		if ($this->controller->RequestHandler->accepts('jsonVndError')) {
+			echo "request accepts jsonHal\n";
+			return true;
+		}
+		if ($this->controller->RequestHandler->accepts('xmlVndError')) {
+			return true;
+		}
+		return false;
 	}
 
 }

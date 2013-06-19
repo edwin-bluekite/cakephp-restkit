@@ -96,10 +96,10 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 		$code = ($error->getCode() >= 400 && $error->getCode() < 506) ? $error->getCode() : 500;
 
 		// handle REST errors
-		if ($this->request->is('rest')) {
+		if ($this->controller->RestKit->isRest()){
 
 			// prepare 'Exception' data for the view
-			if ($this->request->is('vndError')) {    // vnd.error
+			if ($this->controller->RequestHandler->accepts('vndError')) {    // vnd.error
 				$this->_setVndError($error);
 			} else {
 				$this->_setPlainError($code, $error->getMessage());
@@ -141,10 +141,10 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 		}
 
 		// handle REST errors
-		if ($this->request->is('rest')) {
+		if ($this->controller->RestKit->isRest()){
 
 			// prepare 'Exception' data for the view
-			if ($this->request->is('vndError')) {    // vnd.error
+			if ($this->controller->RequestHandler->accepts('vndError')) {    // vnd.error
 				$this->_setVndError($error);
 			} else {
 				$this->_setPlainError($error->getCode(), $message);
@@ -184,10 +184,11 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 		$code = ($error->getCode() > 500 && $error->getCode() < 506) ? $error->getCode() : 500;
 
 		// handle REST errors
-		if ($this->request->is('rest')) {
+		if ($this->controller->RestKit->isRest()){
+		//if ($this->request->is('rest')) {
 
 			// prepare 'Exception' data for the view
-			if ($this->request->is('vndError')) {    // vnd.error
+			if ($this->controller->RequestHandler->accepts('vndError')) {    // vnd.error
 				$this->_setVndError($error);
 			} else {
 				$this->_setPlainError($code, $message);
