@@ -8,5 +8,8 @@
 		"php": ">=5.3.0",
 		"composer/installers": "*",
 		"cakedc/migrations": "dev-master"
-	}
+	},
+    "extra": {
+        "installer-name": "RestKit"
+    }
 }
