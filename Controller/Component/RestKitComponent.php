@@ -63,13 +63,12 @@ class RestKitComponent extends Component {
 	 */
 	protected function setup(Controller $controller) {
 
-		$this->_addMimeTypes();  // add all custom Media Types so we can render based on Accept headers
-		$this->_setViewClassMap(); // point viewClass to RestKit.RestKitView
-		// output some sanity-checks
-//		echo "1. client prefers " . $this->controller->RequestHandler->prefers() . "\n";
-//		echo "2. " . $this->controller->RequestHandler->prefers() . " maps to: " . $this->controller->RequestHandler->mapAlias($this->controller->RequestHandler->prefers()) . "\n";
-		echo "3. viewClassMap below:\n";
-		pr($this->controller->RequestHandler->viewClassMap());
+		// define all supported (custom) Media Types so we can render based on Accept headers
+		$this->_addMimeTypes();
+
+		// map viewClasses to either RestKitJsonView or RestKitXmlView
+		$this->_setViewClassMap();
+
 		// allow public access to everything when 'Authenticate' is set to false in the config file
 		if (Configure::read('RestKit.Authenticate') == false) {
 			$controller->Auth->allow();
@@ -185,35 +184,7 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 * _addRequestDetectors() ....
-	 */
-	protected function addRequestDetectors() {
-		// any of the supported REST requests
-		//$this->_addRestDetector();
-	}
-
-	/**
-	 * _addRestDetector() defines a callback-detector that will check if a request is REST
-	 * by checking for any of the implemented REST Media Types (only HAL atm).
-	 */
-	private function _addRestDetector() {
-		$this->controller->request->addDetector('rest', array('callback' => function(CakeRequest $request) {
-			    if ($this->request->is('plain')) {
-				    return true;
-			    }
-			    if ($request->is('hal')) {
-				    return true;
-			    }
-			    return false;
-		    }));
-	}
-
-	public function isRest() {
-		return true;
-	}
-
-	/**
-	 * prefers() checks Accept Headers based on the generic name
+	 * prefers() checks Accept Headers against the generic Media Type name (regardless of json/xml)
 	 *
 	 * @param type $type
 	 * @return boolean
@@ -224,7 +195,6 @@ class RestKitComponent extends Component {
 				return $this->_prefersPlain();
 				break;
 			case 'hal':
-				echo "checking HAL\n";
 				return $this->_prefersHal();
 				break;
 			case 'vndError':
@@ -261,9 +231,7 @@ class RestKitComponent extends Component {
 	 * @return boolean
 	 */
 	private function _prefersHal() {
-		echo "entered _prefersHal\n";
 		if ($this->controller->RequestHandler->accepts('jsonHal')) {
-			echo "request accepts jsonHal\n";
 			return true;
 		}
 		if ($this->controller->RequestHandler->accepts('xmlHal')) {
@@ -279,7 +247,6 @@ class RestKitComponent extends Component {
 	 */
 	private function _prefersVndError() {
 		if ($this->controller->RequestHandler->accepts('jsonVndError')) {
-			echo "request accepts jsonHal\n";
 			return true;
 		}
 		if ($this->controller->RequestHandler->accepts('xmlVndError')) {

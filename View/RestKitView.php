@@ -6,6 +6,13 @@ App::uses('CakeLogInterface', 'Log');
 class RestKitView extends View {
 
 	/**
+	 * $controller reference so we can access RestKit and RequestHandler
+	 *
+	 * @var Controller
+	 */
+	public $controller = null;
+
+	/**
 	 * $modelClass with name of the used Model
 	 *
 	 * @var string
@@ -33,13 +40,6 @@ class RestKitView extends View {
 	public $rootKey = null;
 
 	/**
-	 * $mediaType will hold the requested (generic) Media Type (e.g. hal, collection, etc.)
-	 *
-	 * @var boolean
-	 */
-	public $mediaType = null;
-
-	/**
 	 * $plural will be true for data-collections, false for a single resource
 	 *
 	 * @var boolean
@@ -53,15 +53,16 @@ class RestKitView extends View {
 	 */
 	public function __construct(Controller $controller = null) {
 		parent::__construct($controller);
+		$this->controller = $controller;
 
+		// handle Exceptions
 		if (!isset($this->viewVars['Exception'])) {
 			$this->modelClass = Inflector::singularize(current($this->viewVars['_serialize']));
 			$this->rootKey = current($this->viewVars['_serialize']);
 		}
 
-		// no exception, respond with same Accept header
+		// no exception, respond with Accept response-header identical to that of the request-header
 		$controller->response->type($controller->RequestHandler->prefers());
-
 	}
 
 	/**
@@ -80,18 +81,14 @@ class RestKitView extends View {
 
 			// generate response in vnd.error format
 			// KAN GEEN ACCEPTS() MEER ZIJN !!!
-			if ($this->request->accepts('vndError')) {
+			if ($this->controller->RestKit->prefers('vndError')) {
 				$this->_setVndErrorContentTypeHeader();
 				return $this->_serializeException($this->viewVars['Exception']);
 			}
 
-			// generate response in plain json/xml format
+			// generate error in plain json/xml format
 			return $this->_serializePlain(array('error' => $this->viewVars['Exception']));
 		}
-
-		// set the required Content-Type response header AND fill $this->mediaType
-		//$this->_setContentType();
-		$this->mediaType = 'hal';
 
 		// merge passed options (e.g for excluding or 'foreigning' fields)
 		if (isset($this->viewVars['options'])) {
@@ -99,8 +96,7 @@ class RestKitView extends View {
 		}
 
 		// process plain json/xml requests the "standard" way
-		// @todo RestKit function prefers('plain') not available somehow
-		if ($this->request->accepts('json')||$this->request->accepts('xml')){
+		if ($this->controller->RestKit->prefers('plain')) {
 			return $this->_serializePlain($this->viewVars[$this->rootKey]);
 		}
 
@@ -111,14 +107,12 @@ class RestKitView extends View {
 			$this->plural = false;
 		}
 
-		// Data is automagically passed to the corresponding function in either RestKitJsonView or RestKitXmlView
-		switch ($this->mediaType) {
-			case 'hal':
-				return $this->_serializeHal($this->viewVars[$this->rootKey]);
-				break;
-			default:
-				throw new NotImplementedException('Response Media Type not implemented');
+		// process HAL requests
+		if ($this->controller->RestKit->prefers('hal')) {
+			return $this->_serializeHal($this->viewVars[$this->rootKey]);
 		}
+
+		throw new NotImplementedException('Response Media Type not implemented');
 	}
 
 	/**
@@ -155,25 +149,6 @@ class RestKitView extends View {
 			return false;
 		}
 		return true;
-	}
-
-	/**
-	 * _setContentType() automatically sets the correct Content-Type in the response
-	 * based on the requested Media Type.
-	 */
-	private function _setContentType() {
-
-		if ($this->request->accepts('application/hal+json')) {
-			$this->response->type(array('jsonHal' => 'application/hal+json; charset=' . Configure::read('App.encoding')));
-			$this->response->type('jsonHal');
-			$this->mediaType = 'hal';
-			return;
-		}
-		if ($this->request->accepts('application/hal+xml')) {
-			$this->response->type(array('xmlHal' => 'application/hal+xml; charset=' . Configure::read('App.encoding')));
-			$this->response->type('xmlHal');
-			$this->mediaType = 'hal';
-		}
 	}
 
 	/**
