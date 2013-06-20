@@ -63,6 +63,9 @@ class RestKitComponent extends Component {
 	 */
 	protected function setup(Controller $controller) {
 
+		// disable usage of .json and .xml extensions
+		$this->_disableExtensions();
+
 		// define all supported (custom) Media Types so we can render based on Accept headers
 		$this->_addMimeTypes();
 
@@ -79,10 +82,30 @@ class RestKitComponent extends Component {
 	}
 
 	/**
+	 * _disableExtensions() is used to disable the use of the .json and .xml extensions.
+	 *
+	 * Note: this not only enforces a single URL for each resource (true REST) but also
+	 * prevents unforeseen issues with the RequestHandlerComponent.
+	 *
+	 * @return boolean
+	 * @throws NotFoundException
+	 */
+	private function _disableExtensions(){
+		if (isset($this->controller->request->params['ext']) && $this->controller->request->params['ext'] === 'json') {
+			throw new NotFoundException;
+		}
+		if (isset($this->controller->request->params['ext']) && $this->controller->request->params['ext'] === 'xml') {
+			throw new NotFoundException;
+		}
+		return true;
+	}
+
+
+	/**
 	 * _addMimeTypes() is used to define our custom Media Types so they become
 	 * available in getMimeType() and mapType()
 	 */
-	public function _addMimeTypes() {
+	private function _addMimeTypes() {
 		$this->controller->response->type(array(
 		    'jsonHal' => 'application/hal+json',
 		    'xmlHal' => 'application/hal+xml',
@@ -91,7 +114,7 @@ class RestKitComponent extends Component {
 		));
 	}
 
-	public function _setViewClassMap() {
+	private function _setViewClassMap() {
 		return($this->controller->RequestHandler->viewClassMap(array(
 			    'json' => 'RestKit.RestKitJson',
 			    'xml' => 'RestKit.RestKitXml',
@@ -200,6 +223,9 @@ class RestKitComponent extends Component {
 			case 'vndError':
 				return $this->_prefersVndError();
 				break;
+			case 'rest':
+				return $this->_prefersRest();
+				break;
 			default:
 				return false;
 		}
@@ -241,7 +267,7 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 * _prefersPlain() checks if the prefered error response Media Type is vnd.error
+	 * _prefersVndError() checks if the prefered error response Media Type is vnd.error
 	 *
 	 * @return boolean
 	 */
@@ -254,5 +280,22 @@ class RestKitComponent extends Component {
 		}
 		return false;
 	}
+
+	/**
+	 * _prefersRest() checks if the prefered response Media Type is one of the
+	 * supported/implemented (non-error) REST types
+	 *
+	 * @return boolean
+	 */
+	private function _prefersRest() {
+		if ($this->_prefersPlain()){
+			return true;
+		}
+		if ($this->_prefersHal()){
+			return true;
+		}
+		return false;
+	}
+
 
 }
