@@ -11,18 +11,6 @@ App::uses('CakeLogInterface', 'Log');
 class RestKitJsonView extends RestKitView {
 
 	/**
-	 * __construct() is used to set the correct Accept response-header based on the prefered Accept request-header
-	 *
-	 * @param Controller $controller
-	 */
-	public function __construct(Controller $controller = null) {
-		parent::__construct($controller);
-		if (isset($controller->response) && $controller->response instanceof CakeResponse) {
-			$controller->response->type($controller->RequestHandler->prefers());
-		}
-	}
-
-	/**
 	 * _serializePlain() is here to provide only the most basic functionality for standard json.
 	 * In practice this function will only be used for the 404 errors thrown for clients sending
 	 * requests with the "application/json" Accept Header.

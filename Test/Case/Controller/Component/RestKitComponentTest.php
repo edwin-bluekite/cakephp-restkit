@@ -90,117 +90,18 @@ class RestKitComponentTest extends CakeTestCase {
 	}
 
 	/**
-	 * Test custom callback detector for plain JSON
+	 * Test prefers plain JSON
 	 *
 	 * @return void
 	 */
-	public function testJsonPlainDetector() {
-		$this->assertNull($this->RequestHandler->ext);
-		$_SERVER['HTTP_ACCEPT'] = 'application/json';
-
+	public function testPrefersPlainMediaType() {
 		$this->RequestHandler->initialize($this->Controller);
 		$this->Controller->Auth->initialize($this->Controller);
 		$this->RestKit->initialize($this->Controller);
-		$this->assertTrue($this->Controller->request->is('json'));
-	}
+		//$this->assertNull($this->RequestHandler->ext);
 
-	/**
-	 * Test custom callback detector for plain XML
-	 *
-	 * @return void
-	 */
-	public function testJsonXmlDetector() {
-		$this->assertNull($this->RequestHandler->ext);
-		$_SERVER['HTTP_ACCEPT'] = 'application/xml';
-
-		$this->RequestHandler->initialize($this->Controller);
-		$this->Controller->Auth->initialize($this->Controller);
-		$this->RestKit->initialize($this->Controller);
-		$this->assertTrue($this->Controller->request->is('xml'));
-	}
-
-	/**
-	 * Test custom callback detector for either plain JSON or plain XML
-	 *
-	 * @todo ADD check for both JSON and XML header
-	 * @return void
-	 */
-	public function testPlainDetector() {
-		$this->assertNull($this->RequestHandler->ext);
-		$this->RequestHandler->initialize($this->Controller);
-		$this->Controller->Auth->initialize($this->Controller);
-		$this->RestKit->initialize($this->Controller);
-
-		$_SERVER['HTTP_ACCEPT'] = 'application/xml';
-		$this->assertTrue($this->Controller->request->is('plain'));
-
-		$_SERVER['HTTP_ACCEPT'] = 'application/json';
-		$this->assertTrue($this->Controller->request->is('plain'));
-
-		$_SERVER['HTTP_ACCEPT'] = 'application/other';
-		$this->assertFalse($this->Controller->request->is('plain'));
-	}
-
-
-	/**
-	 * Test custom callback detector for json-HAL
-	 *
-	 * @return void
-	 */
-	public function testJsonHalDetector() {
-		$this->assertNull($this->RequestHandler->ext);
-		$_SERVER['HTTP_ACCEPT'] = 'application/hal+json';
-		//Router::parseExtensions('json', 'xml');
-
-		$this->RequestHandler->initialize($this->Controller);
-		$this->Controller->Auth->initialize($this->Controller);
-		$this->RestKit->initialize($this->Controller);
-		$this->assertTrue($this->Controller->request->is('jsonHal'));
-	}
-
-	/**
-	 * Test custom callback detector for xml-HAL
-	 *
-	 * @return void
-	 */
-	public function testXmlHalDetector() {
-		$this->assertNull($this->RequestHandler->ext);
-		$_SERVER['HTTP_ACCEPT'] = 'application/hal+xml';
-
-		$this->RequestHandler->initialize($this->Controller);
-		$this->Controller->Auth->initialize($this->Controller);
-		$this->RestKit->initialize($this->Controller);
-		$this->assertTrue($this->Controller->request->is('xmlHal'));
-	}
-
-	/**
-	 * Test custom callback detector for JSON vnd.error
-	 *
-	 * @return void
-	 */
-	public function testJsonVndErrorDetector() {
-		$this->assertNull($this->RequestHandler->ext);
-		$_SERVER['HTTP_ACCEPT'] = 'application/vnd.error+json';
-
-		$this->RequestHandler->initialize($this->Controller);
-		$this->Controller->Auth->initialize($this->Controller);
-		$this->RestKit->initialize($this->Controller);
-		$this->assertTrue($this->Controller->request->is('jsonVndError'));
-	}
-
-	/**
-	 * Test custom callback detector for XML vnd.error
-	 *
-	 * @return void
-	 */
-	public function testXmlVndErrorDetector() {
-		$this->assertNull($this->RequestHandler->ext);
-		$_SERVER['HTTP_ACCEPT'] = 'application/vnd.error+xml';
-
-		$this->RequestHandler->initialize($this->Controller);
-		$this->Controller->Auth->initialize($this->Controller);
-		$this->RestKit->initialize($this->Controller);
-		$this->assertTrue($this->Controller->request->is('xmlVndError'));
+		//$_SERVER['HTTP_ACCEPT'] = 'application/json';
+		//$this->assertTrue($this->RestKit->prefers('plain'));
 	}
 
 }

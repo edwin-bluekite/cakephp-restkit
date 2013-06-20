@@ -4,8 +4,6 @@ App::uses('RestKitView', 'RestKit.View');
 
 /**
  * RestKitXmlView is responsible for the viewless rendering of XML responses in HAL format
- *
- * @author bravo-kernel
  */
 class RestKitXmlView extends RestKitView {
 

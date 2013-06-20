@@ -53,16 +53,34 @@ class RestKitView extends View {
 	 */
 	public function __construct(Controller $controller = null) {
 		parent::__construct($controller);
+
+		CakeLog::write('error', 'Entered RestKitView: __construct()');
 		$this->controller = $controller;
 
-		// handle Exceptions
+		// Normal (result) response where the Accept-header is autmatically set to
+		// the preferred Accept header used in the request.
 		if (!isset($this->viewVars['Exception'])) {
+
+			// define some variables to be used while formatting the data
 			$this->modelClass = Inflector::singularize(current($this->viewVars['_serialize']));
 			$this->rootKey = current($this->viewVars['_serialize']);
 		}
 
-		// no exception, respond with Accept response-header identical to that of the request-header
-		$controller->response->type($controller->RequestHandler->prefers());
+		// Exception response
+		if (isset($this->viewVars['Exception'])) {
+			//echo "wel een exception!!!\n";
+			echo "Exception prefers: " . $this->controller->RequestHandler->prefers() . "\n";
+
+			// HERE WE NEED TO SWITCH PREFERS TO AUTOMAGICALLY RENDER THE CORRECT MEDIA TYPE
+			//$this->controller->RequestHandler->renderAs($controller, 'json');
+			//$this->controller->response->type(array('jsonVndError' => 'application/vnd.error+json'));
+			//$this->controller->response->type('jsonVndError');
+			//CakeLog::write('error', "prefers = " . $this->controller->RequestHandler->prefers());
+//			$this->controller->
+			//$controller->response->type($controller->RequestHandler->prefers('jsonVndError'));
+		}
+
+		CakeLog::write('error', "Done, controller set");
 	}
 
 	/**
@@ -75,14 +93,13 @@ class RestKitView extends View {
 	 * @return string The rendered view.
 	 */
 	public function render($view = null, $layout = null) {
+		CakeLog::write('error', "Entered render()");
 
 		// Handle Exceptions first (serialized differently)
 		if (isset($this->viewVars['Exception'])) {
 
 			// generate response in vnd.error format
-			// KAN GEEN ACCEPTS() MEER ZIJN !!!
 			if ($this->controller->RestKit->prefers('vndError')) {
-				$this->_setVndErrorContentTypeHeader();
 				return $this->_serializeException($this->viewVars['Exception']);
 			}
 
@@ -149,20 +166,6 @@ class RestKitView extends View {
 			return false;
 		}
 		return true;
-	}
-
-	/**
-	 * _setVndErrorContentTypeHeader() is used to respond with the correct vnd.error
-	 * Content-Type header ("application/vnd.error+json" or "application/vnd.error+xml").
-	 */
-	private function _setVndErrorContentTypeHeader() {
-		if ($this->request->accepts('json') || $this->request->accepts('jsonHal')) {
-			$this->response->type(array('jsonVndError' => 'application/vnd.error+json'));
-			$this->response->type('jsonVndError');
-			return;
-		}
-		$this->response->type(array('xmlVndError' => 'application/vnd.error+xml'));
-		$this->response->type('xmlVndError');
 	}
 
 }

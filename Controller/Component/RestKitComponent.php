@@ -9,18 +9,36 @@ App::uses('RestOption', 'Model');
 class RestKitComponent extends Component {
 
 	/**
+	 * $isRest will become true when the request passes all checks
+	 *
+	 * @var boolean isRest
+	 */
+	protected $isRest = false;
+
+	/**
+	 * $mediaTypes holds all supported/implemented Media Types
+	 *
+	 * @var array
+	 */
+	protected $successMediaTypes = array(
+	    'json',
+	    'xml',
+	    'jsonHal',
+	    'xmlHal'
+	);
+	protected $errorMediaTypes = array(
+	    'json',
+	    'xml',
+	    'jsonVndError',
+	    'xmlVndError'
+	);
+
+	/**
 	 * $controller holds a reference to the current controller
 	 *
 	 * @var Controller
 	 */
 	protected $controller;
-
-	/**
-	 * $request holds a reference to the current request
-	 *
-	 * @var CakeRequest
-	 */
-	protected $request;
 
 	/**
 	 * $validationErrors will hold validationErrors
@@ -38,7 +56,7 @@ class RestKitComponent extends Component {
 	public function initialize(Controller $controller) {
 		$this->controller = $controller; // create local reference to calling controller
 		$this->request = $controller->request;
-		$this->setup($controller);
+		$this->setup();
 	}
 
 	/**
@@ -54,17 +72,38 @@ class RestKitComponent extends Component {
 	}
 
 	/**
+	 * beforeRender() is used to make sure HAL requests are rendered as json/xml
+	 * using the viewless logic in RestKitView.
+	 *
+	 * NOTE: renderAs() is absolutely required here to be able to respond with Media Types
+	 * that are different that the preferred Media Type (e.g. when handling exceptions)
+	 *
+	 * @param Controller $controller
+	 */
+	public function beforeRender(Controller $controller) {
+
+		if ($this->isRest) {
+			if ($this->_isException()) {
+				$controller->RequestHandler->renderAs($controller, $this->getPreferredErrorType());
+			} else {
+				$controller->RequestHandler->renderAs($controller, $this->getPreferredSuccessType());
+			}
+		}
+	}
+
+	/**
 	 * setup() is used to configure the RestKit component.
 	 *
 	 * RequestHandler::prefers() will be set based on the extension or Accept Header
 	 *
-	 * @param Controller $controller
 	 * @return void
 	 */
-	protected function setup(Controller $controller) {
+	protected function setup() {
 
 		// disable usage of .json and .xml extensions
-		$this->_disableExtensions();
+		if ($this->_usesExtensions()) {
+			throw new NotFoundException;
+		}
 
 		// define all supported (custom) Media Types so we can render based on Accept headers
 		$this->_addMimeTypes();
@@ -72,34 +111,124 @@ class RestKitComponent extends Component {
 		// map viewClasses to either RestKitJsonView or RestKitXmlView
 		$this->_setViewClassMap();
 
-		// allow public access to everything when 'Authenticate' is set to false in the config file
-		if (Configure::read('RestKit.Authenticate') == false) {
-			$controller->Auth->allow();
+		// see if the request passes the checks for supported (success and error) Accept headers
+		//
+		// INFO: we gaan zelf de prefers() bepalen en zetten mbv $type(). Absoluut nodig omdat de standaard
+		// prefers() van RequestHandler de volgorde van headers niet kan bepalen. E.g. als iemand de vnd.error
+		// header boven de hal header plaatst dan wordt de vnd.error ineens preferred.
+		if ($this->_isRestKitRequest()) {
+			$this->isRest = true;
+		} else {
+			throw new NotFoundException;
 		}
 
-		// renderAs() absolutely required to render viewless based on Accept headers
-		$this->controller->RequestHandler->renderAs($controller, $this->controller->RequestHandler->prefers());
+
+		// allow public access to everything when 'Authenticate' is set to false in the config file
+		if (Configure::read('RestKit.Authenticate') == false) {
+			$this->controller->Auth->allow();
+		}
 	}
 
 	/**
-	 * _disableExtensions() is used to disable the use of the .json and .xml extensions.
-	 *
-	 * Note: this not only enforces a single URL for each resource (true REST) but also
-	 * prevents unforeseen issues with the RequestHandlerComponent.
 	 *
 	 * @return boolean
-	 * @throws NotFoundException
 	 */
-	private function _disableExtensions(){
-		if (isset($this->controller->request->params['ext']) && $this->controller->request->params['ext'] === 'json') {
-			throw new NotFoundException;
+	private function _isRestKitRequest() {
+
+		// make sure we only respond to/using implemented Media Types
+		if (!$this->_isSupportedSuccessType($this->getPreferredSuccessType())) {
+			return false;
 		}
-		if (isset($this->controller->request->params['ext']) && $this->controller->request->params['ext'] === 'xml') {
-			throw new NotFoundException;
+
+		if (!$this->_isSupportedErrorType($this->getPreferredErrorType())) {
+			return false;
 		}
 		return true;
 	}
 
+	/**
+	 * _usesExtensions() checks if the .json or .xml extension is being used to access the resource.
+	 *
+	 * Note: this not only enforces a single URL for each resource (true REST) but also
+	 *  prevents unforeseen issues with the RequestHandlerComponent.
+	 *
+	 * @return boolean
+	 */
+	private function _usesExtensions() {
+		if (isset($this->controller->request->params['ext']) && $this->controller->request->params['ext'] === 'json') {
+			return true;
+		}
+		if (isset($this->controller->request->params['ext']) && $this->controller->request->params['ext'] === 'xml') {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * getPreferredSuccessType() determines the preferred Media Type to be used for
+	 * successfull responses by:
+	 * - looping through all Accept Headers
+	 * - mathing each header against the supported/implemented Media Types
+	 * - returning the alias for the first match it finds
+	 *
+	 * @return string when a matching alias is detected
+	 * @return boolean false when the type is not implemented
+	 */
+	public function getPreferredSuccessType() {
+		foreach ($this->controller->request->accepts() as $accept) {
+			$alias = $this->controller->RequestHandler->mapType($accept);
+			if (in_array($alias, $this->successMediaTypes)) {
+				return $alias;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * getPreferredErrorType() determines the preferred Media Type to be used for
+	 * error responses by:
+	 * - looping through all Accept Headers
+	 * - mathing each header against the supported/implemented Media Types
+	 * - returning the alias for the first match it finds
+	 *
+	 * @return string when a matching alias is detected
+	 * @return boolean false when the type is not implemented
+	 */
+	public function getPreferredErrorType() {
+		foreach ($this->controller->request->accepts() as $accept) {
+			$alias = $this->controller->RequestHandler->mapType($accept);
+			if (in_array($alias, $this->errorMediaTypes)) {
+				return $alias;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * _isSupportedSuccessType() checks if the preferred request Accept header is
+	 *  one of the supported/implemented Media Types.
+	 *
+	 * @return boolean
+	 */
+	private function _isSupportedSuccessType($typeAlias) {
+		if (in_array($typeAlias, $this->successMediaTypes)) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * _isSupportedErrorType() checks if the preferred (error) request Accept header is
+	 *  one of the supported/implemented error Media Types.
+	 *
+	 * @return boolean
+	 */
+	private function _isSupportedErrorType($typeAlias) {
+		if (in_array($typeAlias, $this->errorMediaTypes)) {
+			return true;
+		}
+		return false;
+	}
 
 	/**
 	 * _addMimeTypes() is used to define our custom Media Types so they become
@@ -107,6 +236,8 @@ class RestKitComponent extends Component {
 	 */
 	private function _addMimeTypes() {
 		$this->controller->response->type(array(
+		    'json' => 'application/json',
+		    'xml' => 'application/xml',
 		    'jsonHal' => 'application/hal+json',
 		    'xmlHal' => 'application/hal+xml',
 		    'jsonVndError' => 'application/vnd.error+json',
@@ -288,14 +419,21 @@ class RestKitComponent extends Component {
 	 * @return boolean
 	 */
 	private function _prefersRest() {
-		if ($this->_prefersPlain()){
+		if ($this->_prefersPlain()) {
 			return true;
 		}
-		if ($this->_prefersHal()){
+		if ($this->_prefersHal()) {
 			return true;
 		}
 		return false;
 	}
 
+	private function _isException() {
+		if (get_class($this->controller) === 'CakeErrorController') {
+			//echo "Controller is a CakeErrorController\n";
+			return true;
+		}
+		return false;
+	}
 
 }
