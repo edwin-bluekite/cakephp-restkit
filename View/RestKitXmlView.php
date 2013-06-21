@@ -19,8 +19,23 @@ class RestKitXmlView extends RestKitView {
 		if ($this->plural) {
 			return Xml::fromArray($this->_makePlainPlural($data))->asXML();
 		}
-		return Xml::fromArray($data)->asXML();
+		return Xml::fromArray($this->_makePlainSingular($data))->asXML();
 	}
+
+	/**
+	 * _serializeHal() is used to pass Cake find() data to the HAL array-formatters before
+	 * returning it as XML.
+	 *
+	 * @param type $data
+	 * @return string
+	 */
+	protected function _serializeHal($data) {
+		if ($this->plural) {
+			return Xml::fromArray($this->_makeHalPlural($data))->asXML();
+		}
+		return Xml::fromArray($this->_makeHalSingular($data))->asXML();
+	}
+
 
 	/**
 	 * _makePlainPlural() reformats collection $data into an array ready for plain/default xml
@@ -57,37 +72,16 @@ class RestKitXmlView extends RestKitView {
 	}
 
 	/**
-	 * _makePlainSingular() reformats single resource $data into an array ready for plain/default xml
+	 * _makePlainPlural() reformats collection $data into an array ready for plain/default xml
 	 *
 	 * @param type $data
 	 * @return array
 	 */
 	protected function _makePlainSingular($data) {
-		return $data;
-		$newArray = array(
-			'project' => array(
-			    array(
-				'id' => 1, 'title' => 'Project 1',
-				'industry' => array('id' => 1, 'name' => 'Industry 1')
-			    )
-		    )
-		);
-		return $newArray;
-	}
-
-
-	/**
-	 * _serializeHal() is used to pass Cake find() data to the HAL array-formatters before
-	 * returning it as XML.
-	 *
-	 * @param type $data
-	 * @return string
-	 */
-	protected function _serializeHal($data) {
-		if ($this->plural) {
-			return Xml::fromArray($this->_makeHalPlural($data))->asXML();
-		}
-		return Xml::fromArray($this->_makeHalSingular($data))->asXML();
+		$out = array();
+		$rootNode = strtolower($this->modelClass);
+		$out[$rootNode] = $data[$this->modelClass];
+		return $out;
 	}
 
 	/**
