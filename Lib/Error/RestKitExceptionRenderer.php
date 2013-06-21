@@ -40,8 +40,6 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 */
 	public function __construct(Exception $exception) {
 
-		CakeLog::write('error', 'RestKitExceptionRenderer: entered __construct()');
-
 		// merge required status codes with additional ones found in the configfile
 		$this->statusCodes = Hash::mergeDiff(Configure::read('RestKit.statusCodes'), $this->statusCodes);
 
@@ -100,11 +98,8 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 		// handle REST errors
 		if ($this->controller->RestKit->isRest) {
 
-			CakeLog::write('error', 'RestKitExceptionRenderer: isRest');
-
 			// prepare 'Exception' data for the view
 			if ($this->controller->RestKit->prefers('vndError')) {    // vnd.error
-				CakeLog::write('error', 'RestKitExceptionRenderer: prefersVnd');
 				$this->_setVndError($error);
 			} else {
 				$this->_setPlainError($code, $error->getMessage());
@@ -124,8 +119,6 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 		    'error' => $error,
 		    '_serialize' => array('code', 'url', 'name')
 		));
-
-		//CakeLog::write('error', 'RestKitExceptionRenderer: NAME = ' . h($error->getMessage()));
 		$this->controller->set($error->getAttributes());
 		$this->_outputMessage($this->template);
 	}
