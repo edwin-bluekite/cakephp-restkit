@@ -78,11 +78,9 @@ class RestKitXmlView extends RestKitView {
 	 * @return array
 	 */
 	protected function _makePlainSingular($data) {
-		$arrayKey = key($data);		// e.g. Country
-		$xmlRoot = $arrayKey;		// e.g. country
-		$out = array();
-		$out[$xmlRoot] = $data[$arrayKey];
-		return $out;
+		$arrayKey = key($data);				// e.g. Country
+		$xmlRoot = strtolower($arrayKey);		// e.g. country
+		return array($xmlRoot => $data[$arrayKey]);	// return new array with lowercase key
 	}
 
 	/**
