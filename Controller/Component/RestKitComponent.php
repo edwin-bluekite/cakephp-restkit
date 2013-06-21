@@ -100,9 +100,11 @@ class RestKitComponent extends Component {
 	protected function setup() {
 
 		// disable/enable usage of .json and .xml extensions in the config-file
-		//if ($this->_usesExtensions()) {
-		//	throw new NotFoundException;
-		//}
+		if (Configure::read('RestKit.Request.enableExtensions') == false) {
+			if ($this->_usesExtensions()) {
+				throw new NotFoundException;
+			}
+		}
 
 		// define all supported (custom) Media Types so we can render based on Accept headers
 		$this->_addMimeTypes();
@@ -162,21 +164,10 @@ class RestKitComponent extends Component {
 	 * @return boolean
 	 */
 	private function _usesExtensions() {
-		if ($this->_usesJsonExtension) {
+		if ($this->_usesExtension('json')) {
 			return true;
 		}
-		if ($this->_usesXmlExtension) {
-			return true;
-		}
-		return false;
-	}
-
-	/**
-	 *
-	 * @return boolean
-	 */
-	private function _usesJsonExtension(){
-		if (isset($this->controller->request->params['ext']) && $this->controller->request->params['ext'] === 'json') {
+		if ($this->_usesExtension('xml')) {
 			return true;
 		}
 		return false;
@@ -186,8 +177,8 @@ class RestKitComponent extends Component {
 	 *
 	 * @return boolean
 	 */
-	private function _usesXmlExtension(){
-		if (isset($this->controller->request->params['ext']) && $this->controller->request->params['ext'] === 'xml') {
+	private function _usesExtension($ext){
+		if (isset($this->controller->request->params['ext']) && $this->controller->request->params['ext'] === $ext) {
 			return true;
 		}
 		return false;
@@ -209,7 +200,7 @@ class RestKitComponent extends Component {
 
 		// if the .json extension is being used the preferred success-type will be 'json' unless
 		// an Accept header is found matching one of the specific json-formats.
-		if ($this->_usesJsonExtension()){
+		if ($this->_usesExtension('json')){
 			foreach ($this->controller->request->accepts() as $accept) {
 				$alias = $this->controller->RequestHandler->mapType($accept);
 				if ($alias != 'json'){
@@ -223,7 +214,7 @@ class RestKitComponent extends Component {
 
 		// if the .xml extension is being used the preferred success-type will be 'xml' unless
 		// an Accept header is found matching one of the specific json-formats.
-		if ($this->_usesXmlExtension()){
+		if ($this->_usesExtension('xml')){
 			foreach ($this->controller->request->accepts() as $accept) {
 				$alias = $this->controller->RequestHandler->mapType($accept);
 				if ($alias != 'xml'){
@@ -292,7 +283,7 @@ class RestKitComponent extends Component {
 
 		// if the .json extension is being used the preferred success-type will be 'json' unless
 		// an Accept header is found matching one of the specific json-formats.
-		if ($this->_usesJsonExtension()){
+		if ($this->_usesExtension('json')){
 			foreach ($this->controller->request->accepts() as $accept) {
 				$alias = $this->controller->RequestHandler->mapType($accept);
 				if ($alias != 'json'){
@@ -306,7 +297,7 @@ class RestKitComponent extends Component {
 
 		// if the .xml extension is being used the preferred success-type will be 'xml' unless
 		// an Accept header is found matching one of the specific json-formats.
-		if ($this->_usesXmlExtension()){
+		if ($this->_usesExtension('xml')){
 			foreach ($this->controller->request->accepts() as $accept) {
 				$alias = $this->controller->RequestHandler->mapType($accept);
 				if ($alias != 'xml'){
