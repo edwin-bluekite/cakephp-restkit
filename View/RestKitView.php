@@ -57,30 +57,11 @@ class RestKitView extends View {
 		CakeLog::write('error', 'Entered RestKitView: __construct()');
 		$this->controller = $controller;
 
-		// Normal (result) response where the Accept-header is autmatically set to
-		// the preferred Accept header used in the request.
+		// Set up some variables for normal (non-error) responses
 		if (!isset($this->viewVars['Exception'])) {
-
-			// define some variables to be used while formatting the data
 			$this->modelClass = Inflector::singularize(current($this->viewVars['_serialize']));
 			$this->rootKey = current($this->viewVars['_serialize']);
 		}
-
-		// Exception response
-		if (isset($this->viewVars['Exception'])) {
-			//echo "wel een exception!!!\n";
-			echo "Exception prefers: " . $this->controller->RequestHandler->prefers() . "\n";
-
-			// HERE WE NEED TO SWITCH PREFERS TO AUTOMAGICALLY RENDER THE CORRECT MEDIA TYPE
-			//$this->controller->RequestHandler->renderAs($controller, 'json');
-			//$this->controller->response->type(array('jsonVndError' => 'application/vnd.error+json'));
-			//$this->controller->response->type('jsonVndError');
-			//CakeLog::write('error', "prefers = " . $this->controller->RequestHandler->prefers());
-//			$this->controller->
-			//$controller->response->type($controller->RequestHandler->prefers('jsonVndError'));
-		}
-
-		CakeLog::write('error', "Done, controller set");
 	}
 
 	/**
@@ -112,23 +93,24 @@ class RestKitView extends View {
 			$this->options = Hash::merge($this->options, $this->viewVars['options']);
 		}
 
-		// process plain json/xml requests the "standard" way
-		if ($this->controller->RestKit->prefers('plain')) {
-			return $this->_serializePlain($this->viewVars[$this->rootKey]);
-		}
-
-		// specific Media Type requested, determine if we are processing a data-collection or a single resource
+		// determine whether we are processing a collection or a single resource
 		if (Hash::numeric(array_keys($this->viewVars[$this->rootKey]))) {
 			$this->plural = true;
 		} else {
 			$this->plural = false;
 		}
 
-		// process HAL requests
+		// respond with PLAIN
+		if ($this->controller->RestKit->prefers('plain')) {
+			return $this->_serializePlain($this->viewVars[$this->rootKey]);
+		}
+
+		// respond with HAL
 		if ($this->controller->RestKit->prefers('hal')) {
 			return $this->_serializeHal($this->viewVars[$this->rootKey]);
 		}
 
+		// we should never end up here
 		throw new NotImplementedException('Response Media Type not implemented');
 	}
 
