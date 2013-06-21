@@ -210,8 +210,6 @@ class RestKitComponent extends Component {
 	 */
 	public function getPreferredSuccessType() {
 
-		pr($this->_getJsonSuccessMediaTypes());
-
 		// if the .json extension is being used the preferred success-type will be 'json' unless
 		// an Accept header is found matching one of the specific json-formats.
 		if ($this->_usesJsonExtension()){
@@ -228,8 +226,6 @@ class RestKitComponent extends Component {
 
 		// if the .xml extension is being used the preferred success-type will be 'xml' unless
 		// an Accept header is found matching one of the specific json-formats.
-		//
-		// rekening houden met prefers() ???
 		if ($this->_usesXmlExtension()){
 			foreach ($this->controller->request->accepts() as $accept) {
 				$alias = $this->controller->RequestHandler->mapType($accept);
@@ -242,8 +238,12 @@ class RestKitComponent extends Component {
 			return 'xml';
 		}
 
-		// no extension used, match against the first
-		// override if specific Accept Header is sent
+		// prevent standard browser access rendering xml
+		if ($this->controller->RequestHandler->prefers() === 'html') {
+			return 'false';
+		}
+
+		// no extension used, match against the first matching Accept Header
 		foreach ($this->controller->request->accepts() as $accept) {
 			$alias = $this->controller->RequestHandler->mapType($accept);
 			if (in_array($alias, $this->successMediaTypes)) {
@@ -299,6 +299,10 @@ class RestKitComponent extends Component {
 	public function getPreferredErrorType() {
 
 		if (isset($this->controller->request->params['ext']) && $this->controller->request->params['ext'] === 'json') {
+			$preferred = 'json';
+		}
+
+		if (isset($this->controller->request->params['ext']) && $this->controller->request->params['ext'] === 'xml') {
 			$preferred = 'xml';
 		}
 
