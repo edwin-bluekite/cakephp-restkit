@@ -22,14 +22,14 @@ class RestKitComponent extends Component {
 	 */
 	protected $successMediaTypes = array(
 	    'json',
-	    'xml',
 	    'jsonHal',
+	    'xml',
 	    'xmlHal'
 	);
 	protected $errorMediaTypes = array(
 	    'json',
-	    'xml',
 	    'jsonVndError',
+	    'xml',
 	    'xmlVndError'
 	);
 
@@ -99,10 +99,10 @@ class RestKitComponent extends Component {
 	 */
 	protected function setup() {
 
-		// disable usage of .json and .xml extensions (enforce single resource)
-		if ($this->_usesExtensions()) {
-			throw new NotFoundException;
-		}
+		// disable/enable usage of .json and .xml extensions in the config-file
+		//if ($this->_usesExtensions()) {
+		//	throw new NotFoundException;
+		//}
 
 		// define all supported (custom) Media Types so we can render based on Accept headers
 		$this->_addMimeTypes();
@@ -116,7 +116,7 @@ class RestKitComponent extends Component {
 		}
 
 		// Make sure REST requests pass the Accept header requirements
-		if ($this->prefers('rest')){
+		if ($this->prefers('rest')) {
 			if ($this->_isRestKitRequest()) {
 				$this->isRest = true;
 			} else {
@@ -124,37 +124,72 @@ class RestKitComponent extends Component {
 			}
 		}
 
+		echo "Preferred success-type = " . $this->getPreferredSuccessType() . "\n";
+
 	}
 
 	/**
-	 *
-	 * @return boolean
+	 * _addMimeTypes() is used to define our custom Media Types so they become
+	 * available in getMimeType() and mapType()
 	 */
-	private function _isRestKitRequest() {
-
-		// make sure we only respond to/using implemented Media Types
-		if (!$this->_isSupportedSuccessType($this->getPreferredSuccessType())) {
-			return false;
-		}
-
-		if (!$this->_isSupportedErrorType($this->getPreferredErrorType())) {
-			return false;
-		}
-		return true;
+	private function _addMimeTypes() {
+		$this->controller->response->type(array(
+		    'json' => 'application/json',
+		    'xml' => 'application/xml',
+		    'jsonHal' => 'application/hal+json',
+		    'xmlHal' => 'application/hal+xml',
+		    'jsonVndError' => 'application/vnd.error+json',
+		    'xmlVndError' => 'application/vnd.error+xml'
+		));
 	}
 
 	/**
-	 * _usesExtensions() checks if the .json or .xml extension is being used to access the resource.
+	 * _setViewClassMap() is used to...
 	 *
-	 * Note: this not only enforces a single URL for each resource (true REST) but also
-	 *  prevents unforeseen issues with the RequestHandlerComponent.
+	 * @return type
+	 */
+	private function _setViewClassMap() {
+		return($this->controller->RequestHandler->viewClassMap(array(
+			    'json' => 'RestKit.RestKitJson',
+			    'xml' => 'RestKit.RestKitXml',
+			    'jsonHal' => 'RestKit.RestKitJson',
+			    'xmlHal' => 'RestKit.RestKitXml',
+			    'jsonVndError' => 'RestKit.RestKitJson',
+			    'xmlVndEror' => 'RestKit.RestKitXml',
+		)));
+	}
+
+	/**
+	 * _usesExtensions() checks if the .json or .xml extensions is being used to access the resource.
 	 *
 	 * @return boolean
 	 */
 	private function _usesExtensions() {
+		if ($this->_usesJsonExtension) {
+			return true;
+		}
+		if ($this->_usesXmlExtension) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 *
+	 * @return boolean
+	 */
+	private function _usesJsonExtension(){
 		if (isset($this->controller->request->params['ext']) && $this->controller->request->params['ext'] === 'json') {
 			return true;
 		}
+		return false;
+	}
+
+	/**
+	 *
+	 * @return boolean
+	 */
+	private function _usesXmlExtension(){
 		if (isset($this->controller->request->params['ext']) && $this->controller->request->params['ext'] === 'xml') {
 			return true;
 		}
@@ -168,11 +203,46 @@ class RestKitComponent extends Component {
 	 * - mathing each header against the supported/implemented Media Types
 	 * - returning the alias for the first match it finds
 	 *
+	 * Note: specific Accept Headers override extensions (.json/.xml)
+	 *
 	 * @return string when a matching alias is detected
 	 * @return boolean false when the type is not implemented
 	 */
 	public function getPreferredSuccessType() {
 
+		pr($this->_getJsonSuccessMediaTypes());
+
+		// if the .json extension is being used the preferred success-type will be 'json' unless
+		// an Accept header is found matching one of the specific json-formats.
+		if ($this->_usesJsonExtension()){
+			foreach ($this->controller->request->accepts() as $accept) {
+				$alias = $this->controller->RequestHandler->mapType($accept);
+				if ($alias != 'json'){
+					if (in_array($alias, $this->_getJsonSuccessMediaTypes())) {
+						return $alias;
+					}
+				}
+			}
+			return 'json';
+		}
+
+		// if the .xml extension is being used the preferred success-type will be 'xml' unless
+		// an Accept header is found matching one of the specific json-formats.
+		//
+		// rekening houden met prefers() ???
+		if ($this->_usesXmlExtension()){
+			foreach ($this->controller->request->accepts() as $accept) {
+				$alias = $this->controller->RequestHandler->mapType($accept);
+				if ($alias != 'xml'){
+					if (in_array($alias, $this->_getXmlSuccessMediaTypes())) {
+						return $alias;
+					}
+				}
+			}
+			return 'xml';
+		}
+
+		// no extension used, match against the first
 		// override if specific Accept Header is sent
 		foreach ($this->controller->request->accepts() as $accept) {
 			$alias = $this->controller->RequestHandler->mapType($accept);
@@ -180,7 +250,40 @@ class RestKitComponent extends Component {
 				return $alias;
 			}
 		}
-		return false;
+
+		// no specific Accept Header, check extensions
+
+		if ($this->_usesJsonExtension()){
+			return 'xml';
+		}
+
+		return $false;
+	}
+
+	/**
+	 *
+	 */
+	private function _getJsonSuccessMediaTypes(){
+		$out = array();
+		foreach ($this->successMediaTypes as $mediaType){
+			if (preg_match('/^json/', $mediaType, $matches)) {
+				array_push($out, $mediaType);
+			}
+		}
+		return $out;
+	}
+
+	/**
+	 *
+	 */
+	private function _getXmlSuccessMediaTypes(){
+		$out = array();
+		foreach ($this->successMediaTypes as $mediaType){
+			if (preg_match('/^xml/', $mediaType, $matches)) {
+				array_push($out, $mediaType);
+			}
+		}
+		return $out;
 	}
 
 	/**
@@ -194,13 +297,18 @@ class RestKitComponent extends Component {
 	 * @return boolean false when the type is not implemented
 	 */
 	public function getPreferredErrorType() {
+
+		if (isset($this->controller->request->params['ext']) && $this->controller->request->params['ext'] === 'json') {
+			$preferred = 'xml';
+		}
+
 		foreach ($this->controller->request->accepts() as $accept) {
 			$alias = $this->controller->RequestHandler->mapType($accept);
 			if (in_array($alias, $this->errorMediaTypes)) {
 				return $alias;
 			}
 		}
-		return false;
+		return $preferred;
 	}
 
 	/**
@@ -227,32 +335,6 @@ class RestKitComponent extends Component {
 			return true;
 		}
 		return false;
-	}
-
-	/**
-	 * _addMimeTypes() is used to define our custom Media Types so they become
-	 * available in getMimeType() and mapType()
-	 */
-	private function _addMimeTypes() {
-		$this->controller->response->type(array(
-		    'json' => 'application/json',
-		    'xml' => 'application/xml',
-		    'jsonHal' => 'application/hal+json',
-		    'xmlHal' => 'application/hal+xml',
-		    'jsonVndError' => 'application/vnd.error+json',
-		    'xmlVndError' => 'application/vnd.error+xml'
-		));
-	}
-
-	private function _setViewClassMap() {
-		return($this->controller->RequestHandler->viewClassMap(array(
-			    'json' => 'RestKit.RestKitJson',
-			    'xml' => 'RestKit.RestKitXml',
-			    'jsonHal' => 'RestKit.RestKitJson',
-			    'xmlHal' => 'RestKit.RestKitXml',
-			    'jsonVndError' => 'RestKit.RestKitJson',
-			    'xmlVndEror' => 'RestKit.RestKitXml',
-		)));
 	}
 
 	/**
@@ -421,8 +503,17 @@ class RestKitComponent extends Component {
 
 		// this prevents direct webbrowser access causing xml to be rendered (since
 		// most browsers also send xml Accept headers along with every request)
-		if ($this->controller->RequestHandler->prefers() === 'html'){
+		if ($this->controller->RequestHandler->prefers() === 'html') {
 			return false;
+		}
+
+		$preferred = false;
+
+		if (isset($this->controller->request->params['ext']) && $this->controller->request->params['ext'] === 'json') {
+			return true;
+		}
+		if (isset($this->controller->request->params['ext']) && $this->controller->request->params['ext'] === 'xml') {
+			return true; //$temp = 'json';
 		}
 		if ($this->_prefersPlain()) {
 			return true;
@@ -430,7 +521,7 @@ class RestKitComponent extends Component {
 		if ($this->_prefersHal()) {
 			return true;
 		}
-		return false;
+		return $preferred;
 	}
 
 	private function _isException() {
@@ -439,6 +530,29 @@ class RestKitComponent extends Component {
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * _isRestKitRequest() is used to make sure we will only respond to/using
+	 * Media Types implemented/supported by this plugin.
+	 *
+	 * @return boolean
+	 */
+	private function _isRestKitRequest() {
+
+		echo "RestKit success prefers: " .$this->getPreferredSuccessType() . "\n";
+		echo "RestKit error prefers: " . $this->getPreferredErrorType() . "\n";
+
+
+		// make sure we only respond to/using implemented Media Types
+		if (!$this->_isSupportedSuccessType($this->getPreferredSuccessType())) {
+			return false;
+		}
+
+		if (!$this->_isSupportedErrorType($this->getPreferredErrorType())) {
+			return false;
+		}
+		return true;
 	}
 
 }
