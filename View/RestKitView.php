@@ -53,8 +53,6 @@ class RestKitView extends View {
 	 */
 	public function __construct(Controller $controller = null) {
 		parent::__construct($controller);
-
-		CakeLog::write('error', 'Entered RestKitView: __construct()');
 		$this->controller = $controller;
 
 		// Set up some variables for normal (non-error) responses
@@ -74,7 +72,6 @@ class RestKitView extends View {
 	 * @return string The rendered view.
 	 */
 	public function render($view = null, $layout = null) {
-		CakeLog::write('error', "Entered render()");
 
 		// Handle Exceptions first (serialized differently)
 		if (isset($this->viewVars['Exception'])) {
