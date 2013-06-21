@@ -14,9 +14,10 @@ $config['RestKit'] = array(
 
 // ===================================================================================
 // Define custom statusCodes if you:
-// - require a HTTP Status Codes that is not already present in the CakePHP
-//   core and is not already auto-loaded by the RestKit plugin
-// - want to override Status Code messages (not advized)
+// a) require a HTTP Status Code that is either:
+//   - not already defined in the CakePHP core (CakeResponse)
+//   - not already auto-loaded by the RestKit plugin (RestKitExceptionRenderer)
+// b) want to override Status Code messages (not advized)
 //
 // Additional codes auto-loaded by this plugin are:
 //	422 => 'Unprocessable Entity' (commonly used REST code for failed validations)
