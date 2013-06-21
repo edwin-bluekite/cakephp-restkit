@@ -78,9 +78,10 @@ class RestKitXmlView extends RestKitView {
 	 * @return array
 	 */
 	protected function _makePlainSingular($data) {
+		$arrayKey = key($data);		// e.g. Country
+		$xmlRoot = $arrayKey;		// e.g. country
 		$out = array();
-		$rootNode = strtolower($this->modelClass);
-		$out[$rootNode] = $data[$this->modelClass];
+		$out[$xmlRoot] = $data[$arrayKey];
 		return $out;
 	}
 
