@@ -81,7 +81,6 @@ class RestKitComponent extends Component {
 	 * @param Controller $controller
 	 */
 	public function beforeRender(Controller $controller) {
-
 		if ($this->isRest) {
 			if ($this->_isException()) {
 				$controller->RequestHandler->renderAs($controller, $this->getPreferredErrorType());
@@ -100,7 +99,7 @@ class RestKitComponent extends Component {
 	 */
 	protected function setup() {
 
-		// disable usage of .json and .xml extensions
+		// disable usage of .json and .xml extensions (enforce single resource)
 		if ($this->_usesExtensions()) {
 			throw new NotFoundException;
 		}
@@ -111,22 +110,18 @@ class RestKitComponent extends Component {
 		// map viewClasses to either RestKitJsonView or RestKitXmlView
 		$this->_setViewClassMap();
 
-		// see if the request passes the checks for supported (success and error) Accept headers
-		//
-		// INFO: we gaan zelf de prefers() bepalen en zetten mbv $type(). Absoluut nodig omdat de standaard
-		// prefers() van RequestHandler de volgorde van headers niet kan bepalen. E.g. als iemand de vnd.error
-		// header boven de hal header plaatst dan wordt de vnd.error ineens preferred.
+		// See if the request passes the Accept header requirements
 		if ($this->_isRestKitRequest()) {
 			$this->isRest = true;
 		} else {
-			throw new NotFoundException;
+			throw new Exception("Unsupported Media Type", 415);
 		}
-
 
 		// allow public access to everything when 'Authenticate' is set to false in the config file
 		if (Configure::read('RestKit.Authenticate') == false) {
 			$this->controller->Auth->allow();
 		}
+
 	}
 
 	/**
@@ -175,6 +170,8 @@ class RestKitComponent extends Component {
 	 * @return boolean false when the type is not implemented
 	 */
 	public function getPreferredSuccessType() {
+
+		// override if specific Accept Header is sent
 		foreach ($this->controller->request->accepts() as $accept) {
 			$alias = $this->controller->RequestHandler->mapType($accept);
 			if (in_array($alias, $this->successMediaTypes)) {
