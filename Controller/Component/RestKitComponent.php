@@ -110,16 +110,18 @@ class RestKitComponent extends Component {
 		// map viewClasses to either RestKitJsonView or RestKitXmlView
 		$this->_setViewClassMap();
 
-		// See if the request passes the Accept header requirements
-		if ($this->_isRestKitRequest()) {
-			$this->isRest = true;
-		} else {
-			throw new Exception("Unsupported Media Type", 415);
-		}
-
 		// allow public access to everything when 'Authenticate' is set to false in the config file
 		if (Configure::read('RestKit.Authenticate') == false) {
 			$this->controller->Auth->allow();
+		}
+
+		// Make sure REST requests pass the Accept header requirements
+		if ($this->prefers('rest')){
+			if ($this->_isRestKitRequest()) {
+				$this->isRest = true;
+			} else {
+				throw new Exception("Unsupported Media Type", 415);
+			}
 		}
 
 	}
@@ -416,6 +418,12 @@ class RestKitComponent extends Component {
 	 * @return boolean
 	 */
 	private function _prefersRest() {
+
+		// this prevents direct webbrowser access causing xml to be rendered (since
+		// most browsers also send xml Accept headers along with every request)
+		if ($this->controller->RequestHandler->prefers() === 'html'){
+			return false;
+		}
 		if ($this->_prefersPlain()) {
 			return true;
 		}
