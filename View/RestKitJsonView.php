@@ -101,9 +101,7 @@ class RestKitJsonView extends RestKitView {
 				}
 			}
 		}
-
-		// all done, return data as JSON
-		return json_encode($out);
+		return $out;
 	}
 
 	/**
