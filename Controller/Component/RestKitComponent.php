@@ -47,22 +47,6 @@ class RestKitComponent extends Component {
 	protected $isRest = false;
 
 	/**
-	 * $preferredSuccessType will be set to the preferred Media Type in which
-	 * successful responses will be rendered (e.g . plain, hal, etc)
-	 *
-	 * @var string $preferredSuccesType
-	 */
-	protected $preferredSuccessType = null;
-
-	/**
-	 * $preferredSuccessType will be set to the preferred Media Type in which
-	 * successful responses will be rendered (e.g . plain, vndError, etc)
-	 *
-	 * @var string $preferredErrorType
-	 */
-	protected $preferredErrorType = null;
-
-	/**
 	 * $validationErrors will hold validationErrors
 	 *
 	 * @var array
@@ -93,9 +77,9 @@ class RestKitComponent extends Component {
 	public function beforeRender(Controller $controller) {
 		if ($this->isRest) {
 			if ($this->_isException()) {
-				$controller->RequestHandler->renderAs($controller, $this->preferredErrorType);
+				$controller->RequestHandler->renderAs($controller, $this->getPreferredSuccessType());
 			} else {
-				$controller->RequestHandler->renderAs($controller, $this->preferredSuccessType);
+				$controller->RequestHandler->renderAs($controller, $this->getPreferredErrorType());
 			}
 		}
 	}
@@ -129,13 +113,11 @@ class RestKitComponent extends Component {
 
 		// if the request passes a valid RestKit set component attributes and required viewVars
 		if ($this->prefers('rest')) {
-			$this->isRest = true;
-			$this->preferredSuccessType = $this->getPreferredSuccessType();
-			$this->preferredErrorType = $this->getPreferredErrorType();
-			$this->controller->set(array('RestKit' => array(
-				'isRest' => true,
-				'preferredSuccessType' => $this->preferredSuccessType,
-				'preferredErrorType' => $this->preferredErrorType)));
+			if ($this->_isValidRestKitRequest()) {	// only true if both success and error are set
+				$this->isRest = true;
+			} else {
+				throw new Exception("Unsupported Media Type", 415);
+			}
 		}
 	}
 
@@ -186,7 +168,9 @@ class RestKitComponent extends Component {
 	}
 
 	/**
+	 * _usesExtension() checks if a specific extension is being used
 	 *
+	 * @param type $ext either 'json' or 'xml'
 	 * @return boolean
 	 */
 	private function _usesExtension($ext) {
@@ -335,6 +319,51 @@ class RestKitComponent extends Component {
 			if (in_array($alias, $this->errorMediaTypes)) {
 				return $alias;
 			}
+		}
+		return false;
+	}
+
+	/**
+	 * _isValidRestKitRequest() is used to make sure we will only respond to/using
+	 * Media Types implemented/supported by this plugin.
+	 *
+	 * @return boolean
+	 */
+	private function _isValidRestKitRequest() {
+
+		// make sure we only respond to/using implemented Media Types
+		if (!$this->_isSupportedSuccessType($this->getPreferredSuccessType())) {
+			return false;
+		}
+
+		if (!$this->_isSupportedErrorType($this->getPreferredErrorType())) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * _isSupportedSuccessType() checks if the preferred request Accept header is
+	 * one of the supported/implemented Media Types.
+	 *
+	 * @return boolean
+	 */
+	private function _isSupportedSuccessType($typeAlias) {
+		if (in_array($typeAlias, $this->successMediaTypes)) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * _isSupportedErrorType() checks if the preferred (error) request Accept header is
+	 * one of the supported/implemented error Media Types.
+	 *
+	 * @return boolean
+	 */
+	private function _isSupportedErrorType($typeAlias) {
+		if (in_array($typeAlias, $this->errorMediaTypes)) {
+			return true;
 		}
 		return false;
 	}

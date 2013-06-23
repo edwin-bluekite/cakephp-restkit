@@ -6,7 +6,10 @@ App::uses('CakeLogInterface', 'Log');
 class RestKitView extends View {
 
 	/**
-	 * $controller reference so we can access RestKit and RequestHandler
+	 * $controller reference so we can access RestKit
+	 *
+	 * Note: direct RestKitComponent access absolutely required because the viewVars are
+	 * not available for exceptions.
 	 *
 	 * @var Controller
 	 */
