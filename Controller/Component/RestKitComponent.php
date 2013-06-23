@@ -82,18 +82,6 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 * startup() is used to handle Authentication, Autorization, etc.
-	 *
-	 * Note: startup() is called after the calling Controller's beforeFilter()
-	 *
-	 * @param Controller $controller
-	 * @return void
-	 */
-	public function startup(Controller $controller) {
-
-	}
-
-	/**
 	 * beforeRender() is used to make sure HAL requests are rendered as json/xml
 	 * using the viewless logic in RestKitView.
 	 *
@@ -140,14 +128,14 @@ class RestKitComponent extends Component {
 		}
 
 		// if the request passes a valid RestKit set component attributes and required viewVars
-		if ($this->prefers('rest')){
+		if ($this->prefers('rest')) {
 			$this->isRest = true;
 			$this->preferredSuccessType = $this->getPreferredSuccessType();
 			$this->preferredErrorType = $this->getPreferredErrorType();
 			$this->controller->set(array('RestKit' => array(
 				'isRest' => true,
 				'preferredSuccessType' => $this->preferredSuccessType,
-			    	'preferredErrorType' => $this->preferredErrorType)));
+				'preferredErrorType' => $this->preferredErrorType)));
 		}
 	}
 
@@ -228,7 +216,7 @@ class RestKitComponent extends Component {
 			foreach ($this->controller->request->accepts() as $accept) {
 				$alias = $this->controller->RequestHandler->mapType($accept);
 				if ($alias != 'json') {
-					if (in_array($alias, $this->_getJsonSuccessMediaTypes())) {
+					if (in_array($alias, $this->_getSuccessMediaTypes('json'))) {
 						return $alias;
 					}
 				}
@@ -242,7 +230,7 @@ class RestKitComponent extends Component {
 			foreach ($this->controller->request->accepts() as $accept) {
 				$alias = $this->controller->RequestHandler->mapType($accept);
 				if ($alias != 'xml') {
-					if (in_array($alias, $this->_getXmlSuccessMediaTypes())) {
+					if (in_array($alias, $this->_getSuccessMediaTypes('xml'))) {
 						return $alias;
 					}
 				}
@@ -268,12 +256,16 @@ class RestKitComponent extends Component {
 	}
 
 	/**
+	 * _getSuccessMediaTypes() will return an array with all matching success Media Types
+	 * for either json or xml.
 	 *
+	 * @param type $type either 'json' or 'xml'
+	 * @return array
 	 */
-	private function _getJsonSuccessMediaTypes() {
+	private function _getSuccessMediaTypes($type) {
 		$out = array();
 		foreach ($this->successMediaTypes as $mediaType) {
-			if (preg_match('/^json/', $mediaType, $matches)) {
+			if (preg_match('/^' . $type . '/', $mediaType)) {
 				array_push($out, $mediaType);
 			}
 		}
@@ -281,12 +273,16 @@ class RestKitComponent extends Component {
 	}
 
 	/**
+	 * _getErrorMediaTypes() will return an array with all matching error Media Types
+	 * for either json or xml.
 	 *
+	 * @param type $type either 'json' or 'xml'
+	 * @return array
 	 */
-	private function _getXmlSuccessMediaTypes() {
+	private function _getErrorMediaTypes($type) {
 		$out = array();
-		foreach ($this->successMediaTypes as $mediaType) {
-			if (preg_match('/^xml/', $mediaType, $matches)) {
+		foreach ($this->errorMediaTypes as $mediaType) {
+			if (preg_match('/^' . $type . '/', $mediaType)) {
 				array_push($out, $mediaType);
 			}
 		}
@@ -311,7 +307,7 @@ class RestKitComponent extends Component {
 			foreach ($this->controller->request->accepts() as $accept) {
 				$alias = $this->controller->RequestHandler->mapType($accept);
 				if ($alias != 'json') {
-					if (in_array($alias, $this->_getJsonErrorMediaTypes())) {
+					if (in_array($alias, $this->_getErrorMediaTypes('json'))) {
 						return $alias;
 					}
 				}
@@ -325,7 +321,7 @@ class RestKitComponent extends Component {
 			foreach ($this->controller->request->accepts() as $accept) {
 				$alias = $this->controller->RequestHandler->mapType($accept);
 				if ($alias != 'xml') {
-					if (in_array($alias, $this->_getXmlErrorMediaTypes())) {
+					if (in_array($alias, $this->_getErrorMediaTypes('xml'))) {
 						return $alias;
 					}
 				}
@@ -340,82 +336,6 @@ class RestKitComponent extends Component {
 				return $alias;
 			}
 		}
-		return false;
-	}
-
-	/**
-	 *
-	 */
-	private function _getJsonErrorMediaTypes() {
-		$out = array();
-		foreach ($this->errorMediaTypes as $mediaType) {
-			if (preg_match('/^json/', $mediaType, $matches)) {
-				array_push($out, $mediaType);
-			}
-		}
-		return $out;
-	}
-
-	/**
-	 *
-	 */
-	private function _getXmlErrorMediaTypes() {
-		$out = array();
-		foreach ($this->errorMediaTypes as $mediaType) {
-			if (preg_match('/^xml/', $mediaType, $matches)) {
-				array_push($out, $mediaType);
-			}
-		}
-		return $out;
-	}
-
-	/**
-	 * hasOption() checks the query parameters against a given keyname
-	 *
-	 * @param string $key with name of the query parameter (e.g. order, limit)
-	 * @return boolean
-	 */
-	public function hasOption($key) {
-		return array_key_exists($key, $this->controller->request->query);
-	}
-
-	/**
-	 * validOption() validates the value of a query parameter by checking if:
-	 * - the parameter was actually passed
-	 * - a matching RestKitOption validation rule is defined in the model
-	 * - the parameter passes model validation
-	 *
-	 * Validation errors will be stored in $this->RestKit->optionValidationErrors.
-	 *
-	 * @param string $key with name of the query parameter (e.g. order, limit)
-	 * @return boolean
-	 */
-	public function validOption($key) {
-
-		if (!$this->hasOption($key)) {
-			return false;
-		}
-		// initialize the Model
-		$optionModel = ClassRegistry::init('RestKit.RestOption');
-
-		// check if a validation rule exists for the given key
-		// note: this prevents devs from validating against non-existing rules
-		// which would lead to incorrectly returning true.
-		$validator = $optionModel->validator();
-		if (!$validator->getField($key)) {
-			$this->validationErrors = array($key => array(
-				"Unsupported RestKit validation"
-			    )
-			);
-			return false;
-		}
-
-		// all good so validate the passed value
-		$optionModel->set($this->controller->request->query);
-		if ($optionModel->validates(array('fieldList' => array($key)))) {
-			return true;
-		}
-		$this->validationErrors = $optionModel->validationErrors;
 		return false;
 	}
 
@@ -575,6 +495,56 @@ class RestKitComponent extends Component {
 			//echo "Controller is a CakeErrorController\n";
 			return true;
 		}
+		return false;
+	}
+
+	/**
+	 * hasOption() checks the query parameters against a given keyname
+	 *
+	 * @param string $key with name of the query parameter (e.g. order, limit)
+	 * @return boolean
+	 */
+	public function hasOption($key) {
+		return array_key_exists($key, $this->controller->request->query);
+	}
+
+	/**
+	 * validOption() validates the value of a query parameter by checking if:
+	 * - the parameter was actually passed
+	 * - a matching RestKitOption validation rule is defined in the model
+	 * - the parameter passes model validation
+	 *
+	 * Validation errors will be stored in $this->RestKit->optionValidationErrors.
+	 *
+	 * @param string $key with name of the query parameter (e.g. order, limit)
+	 * @return boolean
+	 */
+	public function validOption($key) {
+
+		if (!$this->hasOption($key)) {
+			return false;
+		}
+		// initialize the Model
+		$optionModel = ClassRegistry::init('RestKit.RestOption');
+
+		// check if a validation rule exists for the given key
+		// note: this prevents devs from validating against non-existing rules
+		// which would lead to incorrectly returning true.
+		$validator = $optionModel->validator();
+		if (!$validator->getField($key)) {
+			$this->validationErrors = array($key => array(
+				"Unsupported RestKit validation"
+			    )
+			);
+			return false;
+		}
+
+		// all good so validate the passed value
+		$optionModel->set($this->controller->request->query);
+		if ($optionModel->validates(array('fieldList' => array($key)))) {
+			return true;
+		}
+		$this->validationErrors = $optionModel->validationErrors;
 		return false;
 	}
 
