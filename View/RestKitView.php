@@ -56,7 +56,7 @@ class RestKitView extends View {
 		$this->controller = $controller;
 
 		// Set up some variables for normal (non-error) responses
-		if (!isset($this->viewVars['Exception'])) {
+		if (!isset($this->viewVars['RestKit']['Exception'])) {
 			$this->modelClass = Inflector::singularize(current($this->viewVars['_serialize']));
 			$this->rootKey = current($this->viewVars['_serialize']);
 		}
@@ -74,15 +74,15 @@ class RestKitView extends View {
 	public function render($view = null, $layout = null) {
 
 		// Handle Exceptions first (serialized differently)
-		if (isset($this->viewVars['Exception'])) {
+		if (isset($this->viewVars['RestKit']['Exception'])) {
 
 			// generate response in vnd.error format
 			if ($this->controller->RestKit->prefers('vndError')) {
-				return $this->_serializeException($this->viewVars['Exception']);
+				return $this->_serializeException($this->viewVars['RestKit']['Exception']);
 			}
 
 			// generate error in plain json/xml format
-			return $this->_serializePlain(array('error' => $this->viewVars['Exception']));
+			return $this->_serializePlain(array('error' => $this->viewVars['RestKit']['Exception']));
 		}
 
 		// merge passed options (e.g for excluding or 'foreigning' fields)

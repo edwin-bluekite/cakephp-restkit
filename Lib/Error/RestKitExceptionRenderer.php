@@ -218,10 +218,11 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 * @param string $message
 	 */
 	private function _setPlainError($code = null, $message = null) {
-		$this->controller->set(array('Exception' => array(
+		$this->controller->set(array('RestKit' => array(
+		    'Exception' => array(
 			'code' => $code,
 			'message' => $message
-		)));
+		))));
 	}
 
 	/**
@@ -327,9 +328,10 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 
 
 
-		// set the 'Exception' viewVar so that RestKitJsonView and RestKitXmlView will
+		// set the 'RestKit.Exception' viewVar so that RestKitJsonView and RestKitXmlView will
 		// recognize it and will use _serializeException() instead of the default _serialize()
-		$this->controller->set(array('Exception' => $errorData));
+		$this->controller->set(array('RestKit'=> array(
+		    'Exception' => $errorData)));
 	}
 
 	/**
