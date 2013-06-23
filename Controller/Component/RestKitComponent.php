@@ -111,13 +111,11 @@ class RestKitComponent extends Component {
 			$this->controller->Auth->allow();
 		}
 
-		// if the request passes a valid RestKit set component attributes and required viewVars
-		if ($this->prefers('rest')) {
-			if ($this->_isValidRestKitRequest()) {	// only true if both success and error are set
+		// if the request passes as a valid RestKit set component attributes and required viewVars
+		if ($this->prefers('rest') && $this->isValidRestKitRequest()) {
 				$this->isRest = true;
-			} else {
-				throw new Exception("Unsupported Media Type", 415);
-			}
+		} else {
+			throw new Exception("Unsupported Media Type", 415);
 		}
 	}
 
@@ -200,7 +198,7 @@ class RestKitComponent extends Component {
 			foreach ($this->controller->request->accepts() as $accept) {
 				$alias = $this->controller->RequestHandler->mapType($accept);
 				if ($alias != 'json') {
-					if (in_array($alias, $this->_getSuccessMediaTypes('json'))) {
+					if (in_array($alias, $this->getSuccessMediaTypes('json'))) {
 						return $alias;
 					}
 				}
@@ -214,7 +212,7 @@ class RestKitComponent extends Component {
 			foreach ($this->controller->request->accepts() as $accept) {
 				$alias = $this->controller->RequestHandler->mapType($accept);
 				if ($alias != 'xml') {
-					if (in_array($alias, $this->_getSuccessMediaTypes('xml'))) {
+					if (in_array($alias, $this->getSuccessMediaTypes('xml'))) {
 						return $alias;
 					}
 				}
@@ -240,13 +238,13 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 * _getSuccessMediaTypes() will return an array with all matching success Media Types
+	 * getSuccessMediaTypes() will return an array with all matching success Media Types
 	 * for either json or xml.
 	 *
 	 * @param type $type either 'json' or 'xml'
 	 * @return array
 	 */
-	private function _getSuccessMediaTypes($type) {
+	private function getSuccessMediaTypes($type) {
 		$out = array();
 		foreach ($this->successMediaTypes as $mediaType) {
 			if (preg_match('/^' . $type . '/', $mediaType)) {
@@ -257,13 +255,13 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 * _getErrorMediaTypes() will return an array with all matching error Media Types
+	 * getErrorMediaTypes() will return an array with all matching error Media Types
 	 * for either json or xml.
 	 *
 	 * @param type $type either 'json' or 'xml'
 	 * @return array
 	 */
-	private function _getErrorMediaTypes($type) {
+	public function getErrorMediaTypes($type) {
 		$out = array();
 		foreach ($this->errorMediaTypes as $mediaType) {
 			if (preg_match('/^' . $type . '/', $mediaType)) {
@@ -291,7 +289,7 @@ class RestKitComponent extends Component {
 			foreach ($this->controller->request->accepts() as $accept) {
 				$alias = $this->controller->RequestHandler->mapType($accept);
 				if ($alias != 'json') {
-					if (in_array($alias, $this->_getErrorMediaTypes('json'))) {
+					if (in_array($alias, $this->getErrorMediaTypes('json'))) {
 						return $alias;
 					}
 				}
@@ -305,7 +303,7 @@ class RestKitComponent extends Component {
 			foreach ($this->controller->request->accepts() as $accept) {
 				$alias = $this->controller->RequestHandler->mapType($accept);
 				if ($alias != 'xml') {
-					if (in_array($alias, $this->_getErrorMediaTypes('xml'))) {
+					if (in_array($alias, $this->getErrorMediaTypes('xml'))) {
 						return $alias;
 					}
 				}
@@ -329,7 +327,7 @@ class RestKitComponent extends Component {
 	 *
 	 * @return boolean
 	 */
-	private function _isValidRestKitRequest() {
+	public function isValidRestKitRequest() {
 
 		// make sure we only respond to/using implemented Media Types
 		if (!$this->_isSupportedSuccessType($this->getPreferredSuccessType())) {
