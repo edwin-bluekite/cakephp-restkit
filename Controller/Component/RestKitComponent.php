@@ -14,16 +14,6 @@ class RestKitComponent extends Component {
 	 * @var Controller
 	 */
 	protected $controller;
-	protected $successMediaTypes2 = array(
-	    'json' => array(
-		'json',
-		'jsonHal'
-	    ),
-	    'xml' => array(
-		'xml',
-		'xmlHal'
-	    )
-	);
 
 	/**
 	 * $successMediaTypes holds all supported/implemented "success" Media Types
