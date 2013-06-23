@@ -76,7 +76,7 @@ class RestKitComponent extends Component {
 	 */
 	public function beforeRender(Controller $controller) {
 		if ($this->isRest) {
-			if ($this->_isException()) {
+			if ($this->isException()) {
 				$controller->RequestHandler->renderAs($controller, $this->getPreferredSuccessType());
 			} else {
 				$controller->RequestHandler->renderAs($controller, $this->getPreferredErrorType());
@@ -513,13 +513,12 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 * _isException() becomes true when the current controller is of class CakeErrorController
+	 * isException() becomes true when the current controller is of class CakeErrorController
 	 *
 	 * @return boolean
 	 */
-	private function _isException() {
+	public function isException() {
 		if (get_class($this->controller) === 'CakeErrorController') {
-			//echo "Controller is a CakeErrorController\n";
 			return true;
 		}
 		return false;
