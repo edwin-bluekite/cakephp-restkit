@@ -231,6 +231,7 @@ class RestKitComponent extends Component {
 	public function getPreferredErrorType() {
 
 		if ($this->preferredFamilyIs('json')) {
+			echo "preferred family is json\n";
 			if ($this->getSpecificErrorType('json')) {
 				return $this->getSpecificErrorType('json');
 			}
@@ -419,9 +420,9 @@ class RestKitComponent extends Component {
 	public function preferredFamilyIs($type) {
 
 		// prevent false positive when extensions are disabled in the configuration file
-		if (Configure::read('RestKit.Request.enableExtensions') == false) {
+		if (Configure::read('RestKit.Request.enableExtensions') == true) {
 			if ($this->_usesExtension($type)) {
-				return false;
+				return true;
 			}
 		}
 
