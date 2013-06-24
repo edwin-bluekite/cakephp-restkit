@@ -77,7 +77,6 @@ class RestKitComponent extends Component {
 	 */
 	public function initialize(Controller $controller) {
 		$this->controller = $controller; // create local reference to calling controller
-		$this->request = $controller->request;
 		$this->setup();
 	}
 
