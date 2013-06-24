@@ -231,7 +231,6 @@ class RestKitComponent extends Component {
 	public function getPreferredErrorType() {
 
 		if ($this->preferredFamilyIs('json')) {
-			echo "preferred family is json\n";
 			if ($this->getSpecificErrorType('json')) {
 				return $this->getSpecificErrorType('json');
 			}
