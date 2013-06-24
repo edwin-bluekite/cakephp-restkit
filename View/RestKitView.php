@@ -6,14 +6,14 @@ App::uses('CakeLogInterface', 'Log');
 class RestKitView extends View {
 
 	/**
-	 * $controller reference so we can access RestKit
+	 * $RestKitComponent holds a reference to the calling controllers RestKitComponent
 	 *
 	 * Note: direct RestKitComponent access absolutely required because the viewVars are
 	 * not available for exceptions.
 	 *
-	 * @var Controller
+	 * @var RestKitComponent
 	 */
-	public $controller = null;
+	public $RestKitComponent = null;
 
 	/**
 	 * $modelClass with name of the used Model
@@ -56,7 +56,7 @@ class RestKitView extends View {
 	 */
 	public function __construct(Controller $controller = null) {
 		parent::__construct($controller);
-		$this->controller = $controller;
+		$this->RestKitComponent = $controller->RestKit;
 
 		// Set up some variables for normal (non-error) responses
 		if (!isset($this->viewVars['RestKit']['Exception'])) {
@@ -80,7 +80,7 @@ class RestKitView extends View {
 		if (isset($this->viewVars['RestKit']['Exception'])) {
 
 			// generate response in vnd.error format
-			if ($this->controller->RestKit->prefers('vndError')) {
+			if ($this->RestKitComponent->prefers('vndError')) {
 				return $this->_serializeException($this->viewVars['RestKit']['Exception']);
 			}
 
@@ -101,12 +101,12 @@ class RestKitView extends View {
 		}
 
 		// respond with PLAIN
-		if ($this->controller->RestKit->prefers('plain')) {
+		if ($this->RestKitComponent->prefers('plain')) {
 			return $this->_serializePlain($this->viewVars[$this->rootKey]);
 		}
 
 		// respond with HAL
-		if ($this->controller->RestKit->prefers('hal')) {
+		if ($this->RestKitComponent->prefers('hal')) {
 			return $this->_serializeHal($this->viewVars[$this->rootKey]);
 		}
 
