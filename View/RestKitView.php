@@ -43,6 +43,13 @@ class RestKitView extends View {
 	public $rootKey = null;
 
 	/**
+	 * $responseType will hold the generic Media Type for the response to render (success or error)
+	 *
+	 * @var type
+	 */
+	public $responseType = null;
+
+	/**
 	 * $plural will be true for data-collections, false for a single resource
 	 *
 	 * @var boolean
@@ -78,33 +85,44 @@ class RestKitView extends View {
 	 */
 	public function render($view = null, $layout = null) {
 
-		// Handle exceptions first (because they are serialized differently)
-		if ($this->isException()) {
+		// determine what response we will render
+		$this->setResponseType();
 
-			// render response in the preferred error Media Type
-			switch ($this->RestKitComponent->genericErrorType) {
-				case 'vndError':
-					return $this->_serializeException($this->viewVars['RestKit']['Exception']);
-					break;
-				default:
-					return $this->_serializePlain(array('error' => $this->viewVars['RestKit']['Exception']));
-			}
+		// success responses require some extra data
+		if (!$this->isException()) {
+			$this->_mergeOptions();
+			$this->_setPlural();
 		}
 
-		// Not an exception, render normal response
-		$this->_mergeOptions();
-		$this->_setPlural();
-
-		// render response in the preferred success Media Type
-		switch ($this->RestKitComponent->genericSuccessType) {
-			case 'plain':
+		// render the response
+		switch ($this->responseType) {
+			case 'success.plain':
 				return $this->_serializePlain($this->viewVars[$this->rootKey]);
 				break;
-			case 'hal':
+			case 'success.hal':
 				return $this->_serializeHal($this->viewVars[$this->rootKey]);
+				break;
+			case 'error.plain':
+				return $this->_serializePlain(array('error' => $this->viewVars['RestKit']['Exception']));
+				break;
+			case 'error.vndError':
+				return $this->_serializeException($this->viewVars['RestKit']['Exception']);
 				break;
 			default:
 				throw new NotImplementedException('Response Media Type not implemented');
+		}
+	}
+
+	/**
+	 * setResponseType() sets the $responseType attribute by:
+	 * - prepending success. or error.
+	 * - appending the generic Media Type preferred in the request
+	 */
+	public function setResponseType() {
+		if ($this->isException()) {
+			$this->responseType = "error." . $this->RestKitComponent->genericErrorType;
+		} else {
+			$this->responseType = "success." . $this->RestKitComponent->genericSuccessType;
 		}
 	}
 
@@ -113,19 +131,18 @@ class RestKitView extends View {
 	 *
 	 * @return boolean
 	 */
-	public function isException(){
+	public function isException() {
 		if (isset($this->viewVars['RestKit']['Exception'])) {
 			return true;
 		}
 		return false;
 	}
 
-
 	/**
 	 * _mergeOptions() merges the options set in the controller (if any) with the default
 	 * options defined in this view's $options attribute
 	 */
-	private function _mergeOptions(){
+	private function _mergeOptions() {
 		if (isset($this->viewVars['options'])) {
 			$this->options = Hash::merge($this->options, $this->viewVars['options']);
 		}
@@ -136,7 +153,7 @@ class RestKitView extends View {
 	 * - true if we are processing a collection
 	 * - false if we are processing a single resource
 	 */
-	private function _setPlural(){
+	private function _setPlural() {
 		if (Hash::numeric(array_keys($this->viewVars[$this->rootKey]))) {
 			$this->plural = true;
 		} else {
