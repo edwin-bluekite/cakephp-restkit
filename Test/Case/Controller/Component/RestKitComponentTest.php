@@ -5,7 +5,6 @@ App::uses('CakeRequest', 'Network');
 App::uses('CakeResponse', 'Network');
 App::uses('Router', 'Routing');
 
-App::uses('ComponentCollection', 'Controller');
 App::uses('Component', 'Controller');
 
 App::uses('RequestHandlerComponent', 'Controller/Component');
@@ -19,9 +18,7 @@ App::uses('RestKitComponent', 'RestKit.Controller/Component');
  */
 class RestKitTestController extends Controller {
 
-
 }
-
 
 /**
  * RestKitComponent Test Case
@@ -62,11 +59,9 @@ class RestKitComponentTest extends CakeTestCase {
 		$this->Auth = new AuthComponent($this->Controller->Components);
 		$this->Auth->initialize($this->Controller);
 
-		$Collection = new ComponentCollection();
-		$this->RestKit = new RestKitComponent($Collection);
+		$this->RestKit = new RestKitComponent($this->Controller->Components);
 		$this->RestKit->initialize($this->Controller);
 	}
-
 
 	/**
 	 * tearDown method
