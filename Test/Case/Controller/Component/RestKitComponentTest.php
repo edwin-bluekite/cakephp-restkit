@@ -1,14 +1,38 @@
 <?php
 
+App::uses('Controller', 'Controller');
+App::uses('CakeRequest', 'Network');
+App::uses('CakeResponse', 'Network');
+App::uses('Router', 'Routing');
+
 App::uses('ComponentCollection', 'Controller');
 App::uses('Component', 'Controller');
+
+App::uses('RequestHandlerComponent', 'Controller/Component');
+App::uses('AuthComponent', 'Controller/Component');
 App::uses('RestKitComponent', 'RestKit.Controller/Component');
+
+/**
+ * RestKitTestController
+ *
+ * @package       RestKit.Test.Case.Controller.Component
+ */
+class RestKitTestController extends Controller {
+
+
+}
+
 
 /**
  * RestKitComponent Test Case
  *
  */
 class RestKitComponentTest extends CakeTestCase {
+
+	public $Controller;
+	public $RequestHandler;
+	public $RestKit;
+	public $Auth;
 
 	/**
 	 * setUp method
@@ -17,9 +41,32 @@ class RestKitComponentTest extends CakeTestCase {
 	 */
 	public function setUp() {
 		parent::setUp();
+		$this->_init();
+	}
+
+	/**
+	 * init method
+	 *
+	 * @return void
+	 */
+	protected function _init() {
+		$request = new CakeRequest('controller_posts/index');
+		$response = new CakeResponse();
+		$this->Controller = new RestKitTestController($request, $response);
+		$this->Controller->constructClasses();
+
+		// set up components
+		$this->RequestHandler = new RequestHandlerComponent($this->Controller->Components);
+		$this->RequestHandler->initialize($this->Controller);
+
+		$this->Auth = new AuthComponent($this->Controller->Components);
+		$this->Auth->initialize($this->Controller);
+
 		$Collection = new ComponentCollection();
 		$this->RestKit = new RestKitComponent($Collection);
+		$this->RestKit->initialize($this->Controller);
 	}
+
 
 	/**
 	 * tearDown method
@@ -27,8 +74,7 @@ class RestKitComponentTest extends CakeTestCase {
 	 * @return void
 	 */
 	public function tearDown() {
-		unset($this->RestKit);
-
+		unset($this->Controller, $this->RequestHandler, $this->Auth, $this->RestKit);
 		parent::tearDown();
 	}
 
@@ -65,22 +111,12 @@ class RestKitComponentTest extends CakeTestCase {
 	public function testMimeTypes() {
 
 		// plain
-		$this->assertEqual($this->controller->response->getMimeType('json'), 'application/json');
-		$this->assertEqual($this->controller->response->getAlias('application/json'), 'json');
-		$this->assertEqual($this->controller->response->getMimeType('xml'), 'application/xml');
-		$this->assertEqual($this->controller->response->getAlias('application/xml'), 'xml');
+		$this->assertEqual($this->Controller->response->getMimeType('json'), 'application/json');
+		$this->assertEqual($this->Controller->response->mapType('application/json'), 'json');
 
 		// HAL
-		$this->assertEqual($this->controller->response->getMimeType('jsonHal'), 'application/hal+json');
-		$this->assertEqual($this->controller->response->getAlias('application/hal+json'), 'jsonHal');
-		$this->assertEqual($this->controller->response->getMimeType('xmlHal'), 'application/hal+xml');
-		$this->assertEqual($this->controller->response->getAlias('application/hal+xml'), 'xmlHal');
-
-		// vnd.error
-		$this->assertEqual($this->controller->response->getMimeType('jsonVndError'), 'application/vnd.error+json');
-		$this->assertEqual($this->controller->response->getAlias('application/vnd.error+json'), 'jsonVndError');
-		$this->assertEqual($this->controller->response->getMimeType('xmlVndError'), 'application/vnd.error+xml');
-		$this->assertEqual($this->controller->response->getAlias('application/vnd.error+xml'), 'xmlVndError');
+		$this->assertEqual($this->Controller->response->getMimeType('jsonHal'), 'application/hal+json');
+		$this->assertEqual($this->Controller->response->mapType('application/hal+json'), 'jsonHal');
 	}
 
 	/**
