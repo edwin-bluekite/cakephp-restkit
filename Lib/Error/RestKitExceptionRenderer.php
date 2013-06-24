@@ -352,6 +352,12 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 * @return type
 	 */
 	private function _getVndData($code, $message) {
+
+		// do not create vndError database entries in debug mode
+		if (Configure::read('debug') > 0){
+			return;
+		}
+
 		$hash = $this->_getVndErrorHash($code, $message);
 
 		$vndIds = $this->_getVndErrorIds($hash);
