@@ -117,7 +117,7 @@ class RestKitComponent extends Component {
 		if ($this->prefers('rest')) {
 			if ($this->isValidRestKitRequest()) {
 				$this->isRest = true;
-				$this->genericSuccessType = $this->getGenericSuccessType();	// to be used in RestKitView
+				$this->genericSuccessType = $this->getGenericSuccessType(); // to be used in RestKitView
 			} else {
 				throw new Exception("Unsupported Media Type", 415);
 			}
@@ -285,6 +285,7 @@ class RestKitComponent extends Component {
 			}
 		}
 	}
+
 	/**
 	 * getSpecificErrorType() will return the first matching non-plain error Media Type (for either json or xml)
 	 *
@@ -301,7 +302,6 @@ class RestKitComponent extends Component {
 			}
 		}
 	}
-
 
 	/**
 	 * _isValidRestKitRequest() makes sure that both the preferred success and preferred error
