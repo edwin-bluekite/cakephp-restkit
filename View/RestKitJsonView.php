@@ -5,7 +5,7 @@ App::uses('RestKitView', 'RestKit.View');
 class RestKitJsonView extends RestKitView {
 
 	/**
-	 * _serializePlain() json encodes $data as-is (PlainHelper not needed)
+	 * _serializePlain() returns a string containing the "as-is" json_encoded $data (no helper needed)
 	 *
 	 * @param type $data
 	 * @return string
@@ -15,7 +15,7 @@ class RestKitJsonView extends RestKitView {
 	}
 
 	/**
-	 * _serializeHal() uses the HalHelper to generate an array ready for rendering as HAL-JSON
+	 * _serializeHal() uses the HalHelper to return a string containing HAL-JSON
 	 *
 	 * @param type $data
 	 * @return string
@@ -29,7 +29,7 @@ class RestKitJsonView extends RestKitView {
 	}
 
 	/**
-	 * _serializeVndError() uses the VndErrorHelper to generate an array ready for rendering as vnd.error JSON
+	 * _serializeVndError() uses the VndErrorHelper to return a string containing vnd.error JSON
 	 *
 	 * @param array $data
 	 * @return string
