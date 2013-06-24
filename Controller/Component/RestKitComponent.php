@@ -512,24 +512,16 @@ class RestKitComponent extends Component {
 	 */
 	private function _prefersPlain() {
 
-		// specific Media Types alwasys supersede plain requests
-		if ($this->_prefersHal()) {
-			return false;
-		}
-
 		// prevent false positive when extensions are disabled in the configuration file
 		if (Configure::read('RestKit.Request.enableExtensions') == false) {
 			if ($this->_usesExtensions()) {
 				return false;
 			}
 		}
-		if ($this->controller->RequestHandler->accepts('json')) {
+		if ($this->controller->RequestHandler->prefers('json')) {
 			return true;
 		}
-		if ($this->controller->RequestHandler->prefers() === 'html') {
-			return false;
-		}
-		if ($this->controller->RequestHandler->accepts('xml')) {
+		if ($this->controller->RequestHandler->prefers('xml')) {
 			return true;
 		}
 		return false;
@@ -541,10 +533,10 @@ class RestKitComponent extends Component {
 	 * @return boolean
 	 */
 	private function _prefersHal() {
-		if ($this->controller->RequestHandler->accepts('jsonHal')) {
+		if ($this->controller->RequestHandler->prefers('jsonHal')) {
 			return true;
 		}
-		if ($this->controller->RequestHandler->accepts('xmlHal')) {
+		if ($this->controller->RequestHandler->prefers('xmlHal')) {
 			return true;
 		}
 		return false;
