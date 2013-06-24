@@ -8,18 +8,17 @@ App::uses('RestKitView', 'RestKit.View');
 class RestKitXmlView extends RestKitView {
 
 	/**
-	 * _serializePlain() is here to provide only the most basic functionality for standard xml.
-	 * In practice this function will only be used for the 404 errors thrown for clients sending
-	 * requests with the "application/xml" Accept Header.
+	 * _serializePlain() uses the RestKit.PlainHelper to format find() data into
+	 * Xml compatible format before returning it as XML
 	 *
-	 * @param type $data
-	 * @return type
+	 * @param array $data
 	 */
 	protected function _serializePlain($data) {
+		$helper = $this->Helpers->load('RestKit.Plain');
 		if ($this->plural) {
-			return Xml::fromArray($this->_makePlainPlural($data))->asXML();
+			return Xml::fromArray($helper->makeXmlPlural($data))->asXML();
 		}
-		return Xml::fromArray($this->_makePlainSingular($data))->asXML();
+		return Xml::fromArray($helper->makeXmlSingular($data))->asXML();
 	}
 
 	/**
@@ -37,51 +36,9 @@ class RestKitXmlView extends RestKitView {
 	}
 
 
-	/**
-	 * _makePlainPlural() reformats collection $data into an array ready for plain/default xml
-	 *
-	 * @param type $data
-	 * @return array
-	 */
-	protected function _makePlainPlural($data) {
 
-		// prepare $out array
-		$out = array();
-		$rootNode = Inflector::tableize($this->modelClass);
-		$subNode = Inflector::singularize($rootNode);
-		$out[$rootNode][$subNode] = array();		// e.g $out['countries']['country']
 
-		// fill $out array
-		foreach ($data as $index => $record) {
-			$temp = array();
-			foreach ($record[$this->modelClass] as $fieldName => $value) {
 
-				if (!$this->_isExcluded($fieldName)) {
-					if (preg_match('/(.+)_id$/', $fieldName, $matches)) {  // everything before the last '_id' in the string will be in $matches[1], e.g. country
-						if ($this->_isForeign($fieldName)) {
-							$temp += array($fieldName => $value);
-						}
-					} else {
-						$temp += array($fieldName => $value);
-					}
-				}
-			}
-			array_push($out[$rootNode][$subNode], $temp);
-		}
-		return $out;
-	}
-
-	/**
-	 * _makePlainPlural() reformats collection $data into an array ready for plain/default xml
-	 *
-	 * @param type $data
-	 * @return array
-	 */
-	protected function _makePlainSingular($data) {
-		$arrayKey = key($data);				// e.g. Country
-		$xmlRoot = strtolower($arrayKey);		// e.g. country
-		return array($xmlRoot => $data[$arrayKey]);	// return new array with lowercase key
-	}
 
 	/**
 	 * _makeHalPlural() generates a HAL-formatted (collection) array from $data before returning it as XML
