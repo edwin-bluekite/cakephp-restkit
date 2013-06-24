@@ -79,7 +79,7 @@ class RestKitView extends View {
 	public function render($view = null, $layout = null) {
 
 		// Handle exceptions first (because they are serialized differently)
-		if (isset($this->viewVars['RestKit']['Exception'])) {
+		if ($this->isException()) {
 
 			// render response in the preferred error Media Type
 			switch ($this->RestKitComponent->genericErrorType) {
@@ -107,6 +107,19 @@ class RestKitView extends View {
 				throw new NotImplementedException('Response Media Type not implemented');
 		}
 	}
+
+	/**
+	 * isException() returns true if we are processing an exception/error
+	 *
+	 * @return boolean
+	 */
+	public function isException(){
+		if (isset($this->viewVars['RestKit']['Exception'])) {
+			return true;
+		}
+		return false;
+	}
+
 
 	/**
 	 * _mergeOptions() merges the options set in the controller (if any) with the default
