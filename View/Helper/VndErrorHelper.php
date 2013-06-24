@@ -15,7 +15,7 @@ class VndErrorHelper extends AppHelper {
 	 * @param array $data
 	 * @return array
 	 */
-	public function makeJson($data){
+	public function makeJson($data) {
 
 		$out = array();
 		$debug = Configure::read('debug');
@@ -36,11 +36,10 @@ class VndErrorHelper extends AppHelper {
 			}
 			array_push($out, $temp);
 		}
-		return array('errors' => $out);
+		return json_encode(array('errors' => $out));
 	}
 
-
-	public function makeXml($data){
+	public function makeXml($data) {
 		$out['error'] = array();
 		$debug = Configure::read('debug');
 
@@ -68,9 +67,7 @@ class VndErrorHelper extends AppHelper {
 			}
 			array_push($out['error'], $temp);
 		}
-
-		return array('errors' => $out);
+		return Xml::fromArray(array('errors' => $out))->asXML();
 	}
-
 
 }

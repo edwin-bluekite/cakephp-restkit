@@ -23,9 +23,9 @@ class RestKitJsonView extends RestKitView {
 	protected function _serializeHal($data) {
 		$helper = $this->Helpers->load('RestKit.Hal');
 		if ($this->plural) {
-			return json_encode($helper->makeJsonPlural($data));
+			return $helper->makeJsonPlural($data);
 		}
-		return json_encode($helper->makeJsonSingular($data));
+		return $helper->makeJsonSingular($data);
 	}
 
 	/**
@@ -36,6 +36,7 @@ class RestKitJsonView extends RestKitView {
 	 */
 	protected function _serializeVndError($data) {
 		$helper = $this->Helpers->load('RestKit.VndError');
-		return json_encode($helper->makeJson($data));
+		return $helper->makeJson($data);
 	}
+
 }

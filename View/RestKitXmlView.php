@@ -13,9 +13,9 @@ class RestKitXmlView extends RestKitView {
 	protected function _serializePlain($data) {
 		$helper = $this->Helpers->load('RestKit.Plain');
 		if ($this->plural) {
-			return Xml::fromArray($helper->makeXmlPlural($data))->asXML();
+			return $helper->makeXmlPlural($data);
 		}
-		return Xml::fromArray($helper->makeXmlSingular($data))->asXML();
+		return $helper->makeXmlSingular($data);
 	}
 
 	/**
@@ -27,9 +27,9 @@ class RestKitXmlView extends RestKitView {
 	protected function _serializeHal($data) {
 		$helper = $this->Helpers->load('RestKit.Hal');
 		if ($this->plural) {
-			return Xml::fromArray($helper->makeXmlPlural($data))->asXML();
+			return $helper->makeXmlPlural($data);
 		}
-		return Xml::fromArray($helper->makeXmlSingular($data))->asXML();
+		return $helper->makeXmlSingular($data);
 	}
 
 	/**
@@ -40,7 +40,7 @@ class RestKitXmlView extends RestKitView {
 	 */
 	protected function _serializeVndError($data) {
 		$helper = $this->Helpers->load('RestKit.VndError');
-		return Xml::fromArray($helper->makeXml($data))->asXML();
+		return $helper->makeXml($data);
 	}
 
 }

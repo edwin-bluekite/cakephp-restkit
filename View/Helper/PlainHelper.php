@@ -41,7 +41,7 @@ class PlainHelper extends AppHelper {
 			}
 			array_push($out[$rootNode][$subNode], $temp);
 		}
-		return $out;
+		return Xml::fromArray($out)->asXML();
 	}
 
 	/**
@@ -53,7 +53,8 @@ class PlainHelper extends AppHelper {
 	public function makeXmlSingular($data) {
 		$arrayKey = key($data);    // e.g. Country
 		$xmlRoot = strtolower($arrayKey);  // e.g. country
-		return array($xmlRoot => $data[$arrayKey]); // return new array with lowercase key
+		$out = array($xmlRoot => $data[$arrayKey]);
+		return Xml::fromArray($out)->asXML();
 	}
 
 }

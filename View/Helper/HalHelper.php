@@ -45,11 +45,11 @@ class HalHelper extends AppHelper {
 			array_push($out, $temp);
 		}
 
-		// add array base structure
-		return array(
+		// add array base structure and return as json
+		return json_encode(array(
 		    '_links' => $this->_getJsonHalSelf($this->RestKit->modelClass),
 		    '_embedded' => array(Inflector::tableize($this->RestKit->rootKey) => $out) // make the key lowercase e.g. user_groups instead of UserGroups
-		);
+		));
 	}
 
 	/**
@@ -79,7 +79,7 @@ class HalHelper extends AppHelper {
 				}
 			}
 		}
-		return $out;
+		return json_encode($out);
 	}
 
 	/**
@@ -157,7 +157,7 @@ class HalHelper extends AppHelper {
 			}
 			array_push($out['resource']['resource'], $temp);
 		}
-		return $out;
+		return Xml::fromArray($out)->asXML();
 	}
 
 	/**
@@ -188,7 +188,7 @@ class HalHelper extends AppHelper {
 				}
 			}
 		}
-		return array('resource' => $out);
+		return Xml::fromArray(array('resource' => $out))->asXML();
 	}
 
 	/**
