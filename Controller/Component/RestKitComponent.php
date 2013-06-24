@@ -127,7 +127,6 @@ class RestKitComponent extends Component {
 				$this->isRest = true;
 				$this->genericSuccessType = $this->getGenericSuccessType(); // to be used in RestKitView
 				$this->genericErrorType = $this->getGenericErrorType(); // to be used in RestKitView
-				echo "generic error type = " . $this->genericErrorType . "\n";
 			} else {
 				throw new Exception("Unsupported Media Type", 415);
 			}
