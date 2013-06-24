@@ -1,7 +1,6 @@
 <?php
 
 App::uses('RestKitView', 'RestKit.View');
-App::uses('CakeLogInterface', 'Log');
 
 /**
  * RestKitJsonView.....
