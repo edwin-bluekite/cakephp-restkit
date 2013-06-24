@@ -72,7 +72,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 * return void
 	 */
 	public function restKit(RestKitException $error) {
-		$this->restError($error, array('message' => $message, 'code' => $code));
+		$this->restError($error);
 	}
 
 	/**
@@ -180,7 +180,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 * @param CakeException $error
 	 * @param type $overrides
 	 */
-	public function restError(CakeException $error, $overrides){
+	public function restError(CakeException $error, $overrides = null){
 
 		// $message and $code vary if debug = 0
 		$message = $error->getMessage();
@@ -258,24 +258,25 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 		if (!is_array($errorData)) {
 
 			CakeLog::write('error', 'setVndError: errordata not an array');
-			//if ($debug == 0) {
-				$vndData = $this->_getVndData($code, $message);
-				$errorData[0] = array(
-				    'logRef' => $vndData['error_id'],
-				    'message' => $message,
-				    'links' => array(
-					'help' => array(
-					    'href' => Configure::read('RestKit.Documentation.errors') . '/' . $vndData['help_id'],
-					    'title' => 'Error information'
-				)));
-			//} else {
-			//	$errorData[0]['code'] = $code;
-			//	$errorData[0]['class'] = $class;
-			//	$errorData[0]['message'] = $message;
-			//	$errorData[0]['file'] = $error->getFile();
-			//	$errorData[0]['line'] = $error->getLine();
-			//	$errorData[0]['trace'] = $error->getTraceAsString();
-			//}
+
+			$vndData = $this->_getVndData($code, $message);
+			$errorData[0] = array(
+			    'logRef' => $vndData['error_id'],
+			    'message' => $message,
+			    'links' => array(
+				'help' => array(
+				    'href' => Configure::read('RestKit.Documentation.errors') . '/' . $vndData['help_id'],
+				    'title' => 'Error information'
+			)));
+
+			if ($debug > 0) {
+				$errorData[0]['debug']['code'] = $code;
+				$errorData[0]['debug']['class'] = $class;
+				$errorData[0]['debug']['message'] = $message;
+				$errorData[0]['debug']['file'] = $error->getFile();
+				$errorData[0]['debug']['line'] = $error->getLine();
+				$errorData[0]['debug']['trace'] = $error->getTraceAsString();
+			}
 		}else{
 		// RICH ERROR INFO PASSED, process per error-entity
 			$i = 0;
