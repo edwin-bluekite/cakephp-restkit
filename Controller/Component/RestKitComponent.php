@@ -119,12 +119,14 @@ class RestKitComponent extends Component {
 			$this->controller->Auth->allow();
 		}
 
-		// if the request passes as a valid RestKit set component attributes and required viewVars
-		if ($this->prefers('rest') && $this->isValidRestKitRequest()) {
-			$this->isRest = true;
-			$this->genericSuccessType = $this->getGenericSuccessType();
-		} else {
-			throw new Exception("Unsupported Media Type", 415);
+		// Render a REST response (only if the request headers pass validations)
+		if ($this->prefers('rest')) {
+			if ($this->isValidRestKitRequest()) {
+				$this->isRest = true;
+				$this->genericSuccessType = $this->getGenericSuccessType();
+			} else {
+				throw new Exception("Unsupported Media Type", 415);
+			}
 		}
 	}
 
@@ -201,8 +203,8 @@ class RestKitComponent extends Component {
 
 		// if the .json or .xml extension is being used the preferred success-type will be $ext unless
 		// an Accept header is found matching one of the more specific (non-plain) Media Types.
-		if ($this->_usesExtensions()){
-			if ($this->getSpecificSuccessType($this->controller->RequestHandler->ext)){
+		if ($this->_usesExtensions()) {
+			if ($this->getSpecificSuccessType($this->controller->RequestHandler->ext)) {
 				return $this->getSpecificSuccessType($this->controller->RequestHandler->ext);
 			}
 			return $this->controller->RequestHandler->ext;
@@ -210,26 +212,13 @@ class RestKitComponent extends Component {
 
 		// prevent standard browser access rendering xml
 		if ($this->controller->RequestHandler->prefers() === 'html') {
-			return 'false';
+			return false;
 		}
 
-		// check JSON
-		if ($this->getSpecificSuccessType('json')){
-			return $this->getSpecificSuccessType('json');
+		// if the preferred Media Types is supported
+		if (in_array($this->controller->RequestHandler->prefers(), $this->successMediaTypes)) {
+			return $this->controller->RequestHandler->prefers();
 		}
-		if ($this->controller->RequestHandler->accepts('json')) {
-			return 'json';
-		}
-
-		// check XML
-		if ($this->getSpecificSuccessType('xml')){
-			return $this->getSpecificSuccessType('xml');
-		}
-		if ($this->controller->RequestHandler->accepts('xml')) {
-			return 'xml';
-		}
-
-		// no RestKit supported matches
 		return false;
 	}
 
@@ -280,15 +269,15 @@ class RestKitComponent extends Component {
 	 */
 	public function getPreferredErrorType() {
 
-		if ($this->prefers('json')){
-			if ($this->getSpecificErrorType('json')){
+		if ($this->controller->RequestHandler->prefers() === 'json') {
+			if ($this->getSpecificErrorType('json')) {
 				return $this->getSpecificErrorType('json');
 			}
 			return 'json';
 		}
 
-		if ($this->prefers('xml')){
-			if ($this->getSpecificErrorType('xml')){
+		if ($this->controller->RequestHandler->prefers() === 'xml') {
+			if ($this->getSpecificErrorType('xml')) {
 				return $this->getSpecificErrorType('xml');
 			}
 			return 'xml';
@@ -470,7 +459,7 @@ class RestKitComponent extends Component {
 	 */
 	private function getGenericSuccessType() {
 
-		switch ($this->getPreferredSuccessType()){
+		switch ($this->getPreferredSuccessType()) {
 			case 'json':
 				return 'plain';
 				break;
