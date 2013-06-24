@@ -5,9 +5,10 @@ App::uses('RestKitView', 'RestKit.View');
 class RestKitXmlView extends RestKitView {
 
 	/**
-	 * _serializePlain() uses PlainHelper to generate an array ready for rendering as plain XML
+	 * _serializePlain() uses the PlainHelper to generate an array ready for rendering as plain XML
 	 *
 	 * @param array $data
+	 * @return string
 	 */
 	protected function _serializePlain($data) {
 		$helper = $this->Helpers->load('RestKit.Plain');
@@ -21,6 +22,7 @@ class RestKitXmlView extends RestKitView {
 	 * _serializeHal() uses HalHelper to generate an array ready for rendering as HAL-XML
 	 *
 	 * @param array $data
+	 * @return string
 	 */
 	protected function _serializeHal($data) {
 		$helper = $this->Helpers->load('RestKit.Hal');
@@ -31,9 +33,10 @@ class RestKitXmlView extends RestKitView {
 	}
 
 	/**
-	 * _serializeVndError() uses VndErrorHelper to generate an array ready for rendering as vnd.error XML
+	 * _serializeVndError() uses the VndErrorHelper to generate an array ready for rendering as vnd.error XML
 	 *
 	 * @param array $data
+	 * @return string
 	 */
 	protected function _serializeVndError($data) {
 		$helper = $this->Helpers->load('RestKit.VndError');
