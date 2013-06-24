@@ -19,12 +19,12 @@ App::uses('RestKitComponent', 'RestKit.Controller/Component');
 class RestKitTestController extends Controller {
 
 	public $components = array(
-	    'RequestHandler',
-	    'Auth' => array(
-		'authenticate' => array(
-		    'Basic' => array(
-			'fields' => array('username' => 'username')))),
-	    'RestKit.RestKit'
+		'RequestHandler',
+		'Auth' => array(
+			'authenticate' => array(
+				'Basic' => array(
+					'fields' => array('username' => 'username')))),
+		'RestKit.RestKit'
 	);
 
 }
@@ -58,8 +58,10 @@ class RestKitComponentTest extends CakeTestCase {
 
 		// create the controller and enable components
 		$request = new CakeRequest(null, false);
-		$this->Controller = new RestKitTestController($request, $this->getMock('CakeResponse'));
-		$this->Controller->Components->init($this->Controller);
+		$this->Controller = new RestKitTestController($request, new CakeResponse());
+
+		$this->Controller->constructClasses();
+		$this->Controller->startupProcess();
 
 		// create easy references
 		$this->RequestHandler = $this->Controller->RequestHandler;
