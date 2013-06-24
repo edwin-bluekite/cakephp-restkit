@@ -78,19 +78,18 @@ class RestKitView extends View {
 	 */
 	public function render($view = null, $layout = null) {
 
-		// Handle Exceptions first (serialized differently)
+		// Handle exceptions first (because they are serialized differently)
 		if (isset($this->viewVars['RestKit']['Exception'])) {
-
-			// generate response in vnd.error format
-			if ($this->RestKitComponent->prefers('vndError')) {
-				return $this->_serializeException($this->viewVars['RestKit']['Exception']);
+			switch ($this->RestKitComponent->genericErrorType) {
+				case 'vndError':
+					return $this->_serializeException($this->viewVars['RestKit']['Exception']);
+					break;
+				default:
+					return $this->_serializePlain(array('error' => $this->viewVars['RestKit']['Exception']));
 			}
-
-			// generate error in plain json/xml format
-			return $this->_serializePlain(array('error' => $this->viewVars['RestKit']['Exception']));
 		}
 
-		// merge passed options (e.g for excluding or 'foreigning' fields)
+		// Not an exception, render normal response
 		if (isset($this->viewVars['options'])) {
 			$this->options = Hash::merge($this->options, $this->viewVars['options']);
 		}
