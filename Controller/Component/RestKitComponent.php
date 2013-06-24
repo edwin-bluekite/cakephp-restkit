@@ -223,7 +223,7 @@ class RestKitComponent extends Component {
 
 		// check XML
 		if ($this->getSpecificSuccessType('xml')){
-			return $this->getSpecificSuccessType('json');
+			return $this->getSpecificSuccessType('xml');
 		}
 		if ($this->controller->RequestHandler->accepts('xml')) {
 			return 'xml';
