@@ -114,7 +114,7 @@ class RestKitView extends View {
 				return $this->_serializePlain(array('error' => $this->viewVars['RestKit']['Exception']));
 				break;
 			case 'error.vndError':
-				return $this->_serializeException($this->viewVars['RestKit']['Exception']);
+				return $this->_serializeVndError($this->viewVars['RestKit']['Exception']);
 				break;
 			default:
 				throw new NotImplementedException('Response Media Type not implemented');
