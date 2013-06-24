@@ -71,10 +71,8 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 * @param type RestKitException $error
 	 * return void
 	 */
-	public function restKitDISABLED(RestKitException $error) {
-		CakeLog::write('error', 'RestKitExceptionRenderer: entered restKit');
-		$this->_setVndError($error);
-		$this->_outputMessage($this->template);  // make sure RestKitView is used
+	public function restKit(RestKitException $error) {
+		$this->restError($error, array('message' => $message, 'code' => $code));
 	}
 
 	/**
@@ -90,23 +88,12 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 */
 	protected function _cakeError(CakeException $error) {
 
-		CakeLog::write('error', 'RestKitExceptionRenderer: entered _cakeError');
-
 		// process dynamic Cake error variables regardless of following logic
 		$code = ($error->getCode() >= 400 && $error->getCode() < 506) ? $error->getCode() : 500;
 
 		// handle REST errors
 		if ($this->controller->RestKit->isRest) {
-
-			// prepare 'Exception' data for the view
-			if ($this->controller->RestKit->prefers('vndError')) {
-				$this->_setVndError($error);
-			} else {
-				$this->_setPlainError($code, $error->getMessage());
-			}
-			$this->_setHttpResponseHeader($code);
-			$this->_outputMessage($this->template);
-			die();
+			$this->restError($error, array('code' => $code));
 		}
 
 		// not REST, render the default Cake HTML error
@@ -132,8 +119,6 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 */
 	public function error400($error) {
 
-		CakeLog::write('error', 'RestKitExceptionRenderer: entered error400');
-
 		// process dynamic Cake error variables regardless of following logic
 		$message = $error->getMessage();
 		if (!Configure::read('debug') && $error instanceof CakeException) {
@@ -142,16 +127,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 
 		// handle REST errors
 		if ($this->controller->RestKit->isRest) {
-
-			// prepare 'Exception' data for the view
-			if ($this->controller->RestKit->prefers('vndError')) {
-				$this->_setVndError($error);
-			} else {
-				$this->_setPlainError($error->getCode(), $message);
-			}
-			$this->_setHttpResponseHeader($error->getCode());
-			$this->_outputMessage($this->template);
-			die();
+			$this->restError($error, array('message' => $message));
 		}
 
 		// not REST, render the default Cake HTML error
@@ -174,8 +150,6 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 	 */
 	public function error500($error) {
 
-		CakeLog::write('error', 'RestKitExceptionRenderer: entered error500');
-
 		// process dynamic Cake error variables regardless of following logic
 		$message = $error->getMessage();
 		if (!Configure::read('debug')) {
@@ -185,16 +159,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 
 		// handle REST errors
 		if ($this->controller->RestKit->isRest) {
-
-			// prepare 'Exception' data for the view
-			if ($this->controller->RestKit->prefers('vndError')) {
-				$this->_setVndError($error);
-			} else {
-				$this->_setPlainError($code, $message);
-			}
-			$this->_setHttpResponseHeader($code);
-			$this->_outputMessage($this->template);
-			die();
+			$this->restError($error, array('message' => $message, 'code' => $code));
 		}
 
 		// not REST, render the default Cake HTML error
@@ -208,6 +173,36 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 		));
 		$this->_outputMessage('error500');
 	}
+
+	/**
+	 * restError() is used to render all errors in REST format
+	 *
+	 * @param CakeException $error
+	 * @param type $overrides
+	 */
+	public function restError(CakeException $error, $overrides){
+
+		// $message and $code vary if debug = 0
+		$message = $error->getMessage();
+		if (isset($overrides['message'])){
+			$message = $overrides['message'];
+		}
+		$code = $error->getCode();
+		if (isset($overrides['code'])){
+			$code = $overrides['code'];
+		}
+
+		// set 'Exception' data for the view
+		if ($this->controller->RestKit->prefers('vndError')) {
+			$this->_setVndError($error);
+		} else {
+			$this->_setPlainError($code, $message);
+		}
+		$this->_setHttpResponseHeader($code);
+		$this->_outputMessage($this->template);
+		die();
+	}
+
 
 	/**
 	 * _setPlainError() is used to set the 'Exception' viewVar for plain json/xml errors
