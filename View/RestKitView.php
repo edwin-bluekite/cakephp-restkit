@@ -80,6 +80,8 @@ class RestKitView extends View {
 
 		// Handle exceptions first (because they are serialized differently)
 		if (isset($this->viewVars['RestKit']['Exception'])) {
+
+			// render response in the preferred error Media Type
 			switch ($this->RestKitComponent->genericErrorType) {
 				case 'vndError':
 					return $this->_serializeException($this->viewVars['RestKit']['Exception']);
@@ -90,18 +92,10 @@ class RestKitView extends View {
 		}
 
 		// Not an exception, render normal response
-		if (isset($this->viewVars['options'])) {
-			$this->options = Hash::merge($this->options, $this->viewVars['options']);
-		}
+		$this->_mergeOptions();
+		$this->_setPlural();
 
-		// determine whether we are processing a collection or a single resource
-		if (Hash::numeric(array_keys($this->viewVars[$this->rootKey]))) {
-			$this->plural = true;
-		} else {
-			$this->plural = false;
-		}
-
-		// respond in the preferred format
+		// render response in the preferred success Media Type
 		switch ($this->RestKitComponent->genericSuccessType) {
 			case 'plain':
 				return $this->_serializePlain($this->viewVars[$this->rootKey]);
@@ -111,6 +105,29 @@ class RestKitView extends View {
 				break;
 			default:
 				throw new NotImplementedException('Response Media Type not implemented');
+		}
+	}
+
+	/**
+	 * _mergeOptions() merges the options set in the controller (if any) with the default
+	 * options defined in this view's $options attribute
+	 */
+	private function _mergeOptions(){
+		if (isset($this->viewVars['options'])) {
+			$this->options = Hash::merge($this->options, $this->viewVars['options']);
+		}
+	}
+
+	/**
+	 * _setPlural() will set the plural attribute to:
+	 * - true if we are processing a collection
+	 * - false if we are processing a single resource
+	 */
+	private function _setPlural(){
+		if (Hash::numeric(array_keys($this->viewVars[$this->rootKey]))) {
+			$this->plural = true;
+		} else {
+			$this->plural = false;
 		}
 	}
 
