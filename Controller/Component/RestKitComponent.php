@@ -155,14 +155,14 @@ class RestKitComponent extends Component {
 	 * @return type
 	 */
 	private function _setViewClassMap() {
-		return($this->controller->RequestHandler->viewClassMap(array(
+		$this->controller->RequestHandler->viewClassMap(array(
 			    'json' => 'RestKit.RestKitJson',
 			    'xml' => 'RestKit.RestKitXml',
 			    'jsonHal' => 'RestKit.RestKitJson',
 			    'xmlHal' => 'RestKit.RestKitXml',
 			    'jsonVndError' => 'RestKit.RestKitJson',
 			    'xmlVndEror' => 'RestKit.RestKitXml',
-		)));
+		));
 	}
 
 	/**
@@ -252,7 +252,7 @@ class RestKitComponent extends Component {
 	 * @param type $type either 'json' or 'xml'
 	 * @return array
 	 */
-	private function getSuccessMediaTypes($type) {
+	public function getSuccessMediaTypes($type) {
 		$out = array();
 		foreach ($this->successMediaTypes as $mediaType) {
 			if (preg_match('/^' . $type . '/', $mediaType)) {
