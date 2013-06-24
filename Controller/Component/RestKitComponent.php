@@ -9,7 +9,7 @@ App::uses('RestOption', 'Model');
 class RestKitComponent extends Component {
 
 	/**
-	 * $controller will hold a reference to the current controller
+	 * $controller holds a reference to the current controller
 	 *
 	 * @var Controller
 	 */
@@ -40,14 +40,14 @@ class RestKitComponent extends Component {
 	);
 
 	/**
-	 * $isRest will become true when the request passes all checks
+	 * $isRest becomes true when a REST request passes all header-checks
 	 *
 	 * @var boolean
 	 */
 	protected $isRest = false;
 
 	/**
-	 * $genericSuccessType holds the generic Media Type name to be used in the RestKitView to
+	 * $genericSuccessType will hold the generic Media Type name to be used in the RestKitView to
 	 * determine the format in which to render the success response.
 	 *
 	 * @var string
@@ -74,11 +74,7 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 * beforeRender() is used to make sure HAL requests are rendered as json/xml
-	 * using the viewless logic in RestKitView.
-	 *
-	 * NOTE: renderAs() is absolutely required here to be able to respond with Media Types
-	 * that are different that the preferred Media Type (e.g. when handling exceptions)
+	 * beforeRender() is used to render viewless json/xml in the correct success/error Media Type
 	 *
 	 * @param Controller $controller
 	 */
@@ -94,8 +90,6 @@ class RestKitComponent extends Component {
 
 	/**
 	 * setup() is used to configure the RestKit component.
-	 *
-	 * RequestHandler::prefers() will be set based on the extension or Accept Header
 	 *
 	 * @return void
 	 */
@@ -123,7 +117,7 @@ class RestKitComponent extends Component {
 		if ($this->prefers('rest')) {
 			if ($this->isValidRestKitRequest()) {
 				$this->isRest = true;
-				$this->genericSuccessType = $this->getGenericSuccessType();
+				$this->genericSuccessType = $this->getGenericSuccessType();	// to be used in RestKitView
 			} else {
 				throw new Exception("Unsupported Media Type", 415);
 			}
@@ -131,8 +125,8 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 * _addMimeTypes() is used to define our custom Media Types so they become
-	 * available in getMimeType() and mapType()
+	 * _addMimeTypes() is used to add custom Media Types so they become available
+	 * in CakeResponse::getMimeType() and CakeResponse::mapType()
 	 */
 	private function _addMimeTypes() {
 		$this->controller->response->type(array(
@@ -146,7 +140,8 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 * _setViewClassMap() is used to...
+	 * _setViewClassMap() is used to make sure the correct RestKitView is used when
+	 * rendering json/xml.
 	 *
 	 * @return type
 	 */
@@ -162,7 +157,7 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 * _usesExtensions() checks if the .json or .xml extensions is being used to access the resource.
+	 * _usesExtensions() checks if either .json or .xml extension is being used to access the resource.
 	 *
 	 * @return boolean
 	 */
@@ -177,9 +172,9 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 * _usesExtension() checks if a specific extension is being used
+	 * _usesExtension() checks if a specific extension is being used to access the resource
 	 *
-	 * @param type $ext either 'json' or 'xml'
+	 * @param type $ext e.g. 'json' or 'xml'
 	 * @return boolean
 	 */
 	private function _usesExtension($ext) {
@@ -190,11 +185,7 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 * getPreferredSuccessType() determines the preferred Media Type to be used for
-	 * success responses by:
-	 * -
-	 * -
-	 * -
+	 * getPreferredSuccessType() determines the preferred Media Type for success responses
 	 *
 	 * @return string when a matching alias is detected
 	 * @return boolean false when the type is not implemented
@@ -223,26 +214,31 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 * getSpecificSuccessTypes() will return all non-plain success Media Types for either
-	 * json or xml
+	 * getPreferredErrorType() determines the preferred Media Type for error responses.
 	 *
-	 * @param type $type
-	 * @return type
+	 * @return string when a matching alias is detected
+	 * @return boolean false when the type is not implemented
 	 */
-	public function getSpecificSuccessType($type) {
-		foreach ($this->controller->request->accepts() as $accept) {
-			$alias = $this->controller->RequestHandler->mapType($accept);
-			if ($alias != $type) {
-				if (in_array($alias, $this->getSuccessMediaTypes($type))) {
-					return $alias;
-				}
+	public function getPreferredErrorType() {
+
+		if ($this->preferredFamilyIs('json')) {
+			if ($this->getSpecificErrorType('json')) {
+				return $this->getSpecificErrorType('json');
 			}
+			return 'json';
 		}
+
+		if ($this->preferredFamilyIs('xml')) {
+			if ($this->getSpecificErrorType('xml')) {
+				return $this->getSpecificErrorType('xml');
+			}
+			return 'xml';
+		}
+		return false;
 	}
 
 	/**
-	 * getSuccessMediaTypes() will return an array with all matching success Media Types
-	 * for either json or xml.
+	 * getSuccessMediaTypes() will return all success Media Types for either json or xml.
 	 *
 	 * @param type $type either 'json' or 'xml'
 	 * @return array
@@ -258,54 +254,7 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 * getPreferredErrorType() determines the preferred Media Type to be used for
-	 * error responses by:
-	 * - looping through all Accept Headers
-	 * - mathing each header against the supported/implemented Media Types
-	 * - returning the alias for the first match it finds
-	 *
-	 * @return string when a matching alias is detected
-	 * @return boolean false when the type is not implemented
-	 */
-	public function getPreferredErrorType() {
-
-		if ($this->controller->RequestHandler->prefers() === 'json') {
-			if ($this->getSpecificErrorType('json')) {
-				return $this->getSpecificErrorType('json');
-			}
-			return 'json';
-		}
-
-		if ($this->controller->RequestHandler->prefers() === 'xml') {
-			if ($this->getSpecificErrorType('xml')) {
-				return $this->getSpecificErrorType('xml');
-			}
-			return 'xml';
-		}
-		return false;
-	}
-
-	/**
-	 * getSpecificErrorTypes() will return all non-plain error Media Types for either
-	 * json or xml
-	 *
-	 * @param type $type
-	 * @return type
-	 */
-	public function getSpecificErrorType($type) {
-		foreach ($this->controller->request->accepts() as $accept) {
-			$alias = $this->controller->RequestHandler->mapType($accept);
-			if ($alias != $type) {
-				if (in_array($alias, $this->getErrorMediaTypes($type))) {
-					return $alias;
-				}
-			}
-		}
-	}
-
-	/**
-	 * getErrorMediaTypes() will return an array with all matching error Media Types
-	 * for either json or xml.
+	 * getErrorMediaTypes() will return all error Media Types for either json or xml.
 	 *
 	 * @param type $type either 'json' or 'xml'
 	 * @return array
@@ -321,18 +270,49 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 * _isValidRestKitRequest() is used to make sure we will only respond to/using
-	 * Media Types implemented/supported by this plugin.
+	 * getSpecificSuccessType() will return the first matching non-plain success Media Type (for either json or xml)
+	 *
+	 * @param type $type
+	 * @return type
+	 */
+	public function getSpecificSuccessType($type) {
+		foreach ($this->controller->request->accepts() as $accept) {
+			$alias = $this->controller->RequestHandler->mapType($accept);
+			if ($alias != $type) {
+				if (in_array($alias, $this->getSuccessMediaTypes($type))) {
+					return $alias;
+				}
+			}
+		}
+	}
+	/**
+	 * getSpecificErrorType() will return the first matching non-plain error Media Type (for either json or xml)
+	 *
+	 * @param type $type
+	 * @return type
+	 */
+	public function getSpecificErrorType($type) {
+		foreach ($this->controller->request->accepts() as $accept) {
+			$alias = $this->controller->RequestHandler->mapType($accept);
+			if ($alias != $type) {
+				if (in_array($alias, $this->getErrorMediaTypes($type))) {
+					return $alias;
+				}
+			}
+		}
+	}
+
+
+	/**
+	 * _isValidRestKitRequest() makes sure that both the preferred success and preferred error
+	 * Media Types are implemented/supported by this plugin
 	 *
 	 * @return boolean
 	 */
 	public function isValidRestKitRequest() {
-
-		// make sure we only respond to/using implemented Media Types
 		if (!$this->_isSupportedSuccessType($this->getPreferredSuccessType())) {
 			return false;
 		}
-
 		if (!$this->_isSupportedErrorType($this->getPreferredErrorType())) {
 			return false;
 		}
@@ -340,7 +320,7 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 * _isSupportedSuccessType() checks if the preferred request Accept header is
+	 * _isSupportedSuccessType() checks if the preferred success request Accept header is
 	 * one of the supported/implemented Media Types.
 	 *
 	 * @return boolean
@@ -404,12 +384,6 @@ class RestKitComponent extends Component {
 	 */
 	public function prefers($type = null) {
 		switch ($type) {
-			case 'json':
-				return $this->_prefersGeneric('json');
-				break;
-			case 'xml':
-				return $this->_prefersGeneric('xml');
-				break;
 			case 'plain':
 				return $this->_prefersPlain();
 				break;
@@ -428,13 +402,12 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 * _prefersGeneric() returns true if any of the passed Accept header match the implemented
-	 * success Media Types for $type.
+	 * prefersGeneric() is used to detect if the preferred Media Type belongs to either the json- or xml-family
 	 *
 	 * @param type $type either 'json' or 'xml'
 	 * @return boolean
 	 */
-	private function _prefersGeneric($type) {
+	public function preferredFamilyIs($type) {
 
 		// prevent false positive when extensions are disabled in the configuration file
 		if (Configure::read('RestKit.Request.enableExtensions') == false) {
