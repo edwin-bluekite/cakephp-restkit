@@ -99,7 +99,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 		if ($this->controller->RestKit->isRest) {
 
 			// prepare 'Exception' data for the view
-			if ($this->controller->RestKit->prefers('vndError')) {    // vnd.error
+			if ($this->controller->RestKit->prefers('vndError')) {
 				$this->_setVndError($error);
 			} else {
 				$this->_setPlainError($code, $error->getMessage());
@@ -144,7 +144,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 		if ($this->controller->RestKit->isRest) {
 
 			// prepare 'Exception' data for the view
-			if ($this->controller->RequestHandler->accepts('vndError')) {    // vnd.error
+			if ($this->controller->RestKit->prefers('vndError')) {
 				$this->_setVndError($error);
 			} else {
 				$this->_setPlainError($error->getCode(), $message);
@@ -187,7 +187,7 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 		if ($this->controller->RestKit->isRest) {
 
 			// prepare 'Exception' data for the view
-			if ($this->controller->RequestHandler->accepts('vndError')) {    // vnd.error
+			if ($this->controller->RestKit->prefers('vndError')) {
 				$this->_setVndError($error);
 			} else {
 				$this->_setPlainError($code, $message);
@@ -196,8 +196,6 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 			$this->_outputMessage($this->template);
 			die();
 		}
-
-
 
 		// not REST, render the default Cake HTML error
 		$url = $this->request->here();
@@ -263,7 +261,9 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 
 		// NO RICH ERROR INFO passed so construct a single error entity ourselves (e.g. for RuntimeExceptions)
 		if (!is_array($errorData)) {
-			if ($debug == 0) {
+
+			CakeLog::write('error', 'setVndError: errordata not an array');
+			//if ($debug == 0) {
 				$vndData = $this->_getVndData($code, $message);
 				$errorData[0] = array(
 				    'logRef' => $vndData['error_id'],
@@ -273,19 +273,16 @@ class RestKitExceptionRenderer extends ExceptionRenderer {
 					    'href' => Configure::read('RestKit.Documentation.errors') . '/' . $vndData['help_id'],
 					    'title' => 'Error information'
 				)));
-			} else {
-				$errorData[0]['code'] = $code;
-				$errorData[0]['class'] = $class;
-				$errorData[0]['message'] = $message;
-				$errorData[0]['file'] = $error->getFile();
-				$errorData[0]['line'] = $error->getLine();
-				$errorData[0]['trace'] = $error->getTraceAsString();
-			}
-		}
-
+			//} else {
+			//	$errorData[0]['code'] = $code;
+			//	$errorData[0]['class'] = $class;
+			//	$errorData[0]['message'] = $message;
+			//	$errorData[0]['file'] = $error->getFile();
+			//	$errorData[0]['line'] = $error->getLine();
+			//	$errorData[0]['trace'] = $error->getTraceAsString();
+			//}
+		}else{
 		// RICH ERROR INFO PASSED, process per error-entity
-		if (is_array($errorData)) {
-
 			$i = 0;
 			foreach ($errorData as $entity) {
 				if ($debug == 0) {
