@@ -48,11 +48,19 @@ class RestKitComponent extends Component {
 
 	/**
 	 * $genericSuccessType will hold the generic Media Type name to be used in the RestKitView to
-	 * determine the format in which to render the success response.
+	 * determine the format in which to render the success response (e.g. plain, hal, etc).
 	 *
 	 * @var string
 	 */
 	protected $genericSuccessType = null;
+
+	/**
+	 * $genericSuccessType will hold the generic Media Type name to be used in the RestKitView to
+	 * determine the format in which to render the error response (e.g. plain, vndError, etc).
+	 *
+	 * @var string
+	 */
+	protected $genericErrorType = null;
 
 	/**
 	 * $validationErrors will hold validationErrors
@@ -118,6 +126,8 @@ class RestKitComponent extends Component {
 			if ($this->isValidRestKitRequest()) {
 				$this->isRest = true;
 				$this->genericSuccessType = $this->getGenericSuccessType(); // to be used in RestKitView
+				$this->genericErrorType = $this->getGenericErrorType(); // to be used in RestKitView
+				echo "generic error type = " . $this->genericErrorType . "\n";
 			} else {
 				throw new Exception("Unsupported Media Type", 415);
 			}
@@ -426,28 +436,37 @@ class RestKitComponent extends Component {
 	}
 
 	/**
-	 * _getGenericSuccessType() returns the generic name for the success Media Type (e.g. plain, hal, etc)
+	 * _getGenericSuccessType() returns the generic name for the preferred success Media Type (e.g. plain, hal, etc)
 	 *
 	 * @return string|boolean
 	 */
 	private function getGenericSuccessType() {
+		$preferred = $this->getPreferredSuccessType();
 
-		switch ($this->getPreferredSuccessType()) {
-			case 'json':
-				return 'plain';
-				break;
-			case 'xml':
-				return 'plain';
-				break;
-			case 'jsonHal':
-				return 'hal';
-				break;
-			case 'xmlHal':
-				return 'hal';
-				break;
-			default:
-				return false;
+		if ($preferred === 'json' || $preferred === 'xml') {
+			return 'plain';
 		}
+		if ($preferred === 'jsonHal' || $preferred === 'xmlHal') {
+			return 'hal';
+		}
+		return false;
+	}
+
+	/**
+	 * _getGenericErrorType() returns the generic name for the preferred error Media Type (e.g. plain, vndError, etc)
+	 *
+	 * @return string|boolean
+	 */
+	private function getGenericErrorType() {
+		$preferred = $this->getPreferredErrorType();
+
+		if ($preferred === 'json' || $preferred === 'xml') {
+			return 'plain';
+		}
+		if ($preferred === 'jsonVndError' || $preferred === 'xmlVndError') {
+			return 'vndError';
+		}
+		return false;
 	}
 
 	/**
