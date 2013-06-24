@@ -94,6 +94,14 @@ class RestKitView extends View {
 			$this->_setPlural();
 		}
 
+		// load the RestKitHelper with required data
+		$this->loadHelper('RestKit.RestKit', array(
+			    'rootKey' => $this->rootKey,
+			    'modelClass' => $this->modelClass,
+			    'options' => $this->options
+		));
+
+
 		// render the response
 		switch ($this->responseType) {
 			case 'success.plain':
@@ -160,41 +168,4 @@ class RestKitView extends View {
 			$this->plural = false;
 		}
 	}
-
-	/**
-	 * _isExcluded() will return true if the field is found in $this->viewVars['options']['excludeFields']
-	 *
-	 * Note: no need to check for isset here because it is defined as a class variable so always present
-	 *
-	 * @param string $fieldName
-	 * @return boolean
-	 */
-	protected function _isExcluded($fieldName) {
-
-		if (!in_array($fieldName, $this->options['excludeFields'])) {
-			return false;
-		}
-		return true;
-	}
-
-	/**
-	 * _isForeign () will return true if the field is found in $this->viewVars['options']['foreign']
-	 *
-	 * Used when fielname_id is not pointing to external id. A good example would be a `geoname_id` field
-	 * with an actual id-pointer to be used with the geonames.org API.
-	 *
-	 * @param string $fieldName
-	 * @return boolean
-	 */
-	protected function _isForeign($fieldName) {
-
-		if (!isset($this->options['foreignFields'])) {
-			return false;
-		}
-		if (!in_array($fieldName, $this->options['foreignFields'])) {
-			return false;
-		}
-		return true;
-	}
-
 }
