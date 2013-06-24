@@ -56,6 +56,8 @@ class RestKitView extends View {
 	 */
 	public function __construct(Controller $controller = null) {
 		parent::__construct($controller);
+
+		// set up a reference to the RestKitComponent
 		$this->RestKitComponent = $controller->RestKit;
 
 		// Set up some variables for normal (non-error) responses
@@ -100,18 +102,17 @@ class RestKitView extends View {
 			$this->plural = false;
 		}
 
-		// respond with PLAIN
-		if ($this->RestKitComponent->prefers('plain')) {
-			return $this->_serializePlain($this->viewVars[$this->rootKey]);
+		// respond in the preferred format
+		switch ($this->RestKitComponent->genericSuccessType) {
+			case 'plain':
+				return $this->_serializePlain($this->viewVars[$this->rootKey]);
+				break;
+			case 'hal':
+				return $this->_serializeHal($this->viewVars[$this->rootKey]);
+				break;
+			default:
+				throw new NotImplementedException('Response Media Type not implemented');
 		}
-
-		// respond with HAL
-		if ($this->RestKitComponent->prefers('hal')) {
-			return $this->_serializeHal($this->viewVars[$this->rootKey]);
-		}
-
-		// we should never end up here
-		throw new NotImplementedException('Response Media Type not implemented');
 	}
 
 	/**

@@ -47,6 +47,14 @@ class RestKitComponent extends Component {
 	protected $isRest = false;
 
 	/**
+	 * $genericSuccessType holds the generic Media Type name to be used in the RestKitView to
+	 * determine the format in which to render the success response.
+	 *
+	 * @var string
+	 */
+	protected $genericSuccessType = null;
+
+	/**
 	 * $validationErrors will hold validationErrors
 	 *
 	 * @var array
@@ -114,6 +122,7 @@ class RestKitComponent extends Component {
 		// if the request passes as a valid RestKit set component attributes and required viewVars
 		if ($this->prefers('rest') && $this->isValidRestKitRequest()) {
 			$this->isRest = true;
+			$this->genericSuccessType = $this->getGenericSuccessType();
 		} else {
 			throw new Exception("Unsupported Media Type", 415);
 		}
@@ -452,6 +461,31 @@ class RestKitComponent extends Component {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * _getGenericSuccessType() returns the generic name for the success Media Type (e.g. plain, hal, etc)
+	 *
+	 * @return string|boolean
+	 */
+	private function getGenericSuccessType() {
+
+		switch ($this->getPreferredSuccessType()){
+			case 'json':
+				return 'plain';
+				break;
+			case 'xml':
+				return 'plain';
+				break;
+			case 'jsonHal':
+				return 'hal';
+				break;
+			case 'xmlHal':
+				return 'hal';
+				break;
+			default:
+				return false;
+		}
 	}
 
 	/**
