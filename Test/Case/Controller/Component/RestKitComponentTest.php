@@ -1,47 +1,14 @@
 <?php
 
-App::uses('Controller', 'Controller');
-App::uses('RequestHandlerComponent', 'Controller/Component');
-App::uses('AuthComponent', 'Controller/Component');
+App::uses('ComponentCollection', 'Controller');
+App::uses('Component', 'Controller');
 App::uses('RestKitComponent', 'RestKit.Controller/Component');
-App::uses('CakeRequest', 'Network');
-App::uses('CakeResponse', 'Network');
-App::uses('Router', 'Routing');
-App::uses('JsonView', 'View');
-App::uses('XmlView', 'View');
 
 /**
- * RestKitTestController class (prev. RequestHandlerTestController)
+ * RestKitComponent Test Case
  *
- * @package       RestKit.Test.Case.Controller.Component
- */
-class RestKitTestController extends Controller {
-
-	/**
-	 * uses property
-	 *
-	 * @var mixed null
-	 */
-	public $uses = null; // does not use a table !!!!!
-
-}
-
-/**
- * CustomJsonView class
- */
-class CustomJsonView extends JsonView {
-
-}
-
-/**
- * RestKitComponentTest class (prev. RequestHandlerComponentTest)
  */
 class RestKitComponentTest extends CakeTestCase {
-
-	public $Controller;
-	public $RequestHandler;
-	public $RestKit;
-	public $Auth;
 
 	/**
 	 * setUp method
@@ -50,29 +17,8 @@ class RestKitComponentTest extends CakeTestCase {
 	 */
 	public function setUp() {
 		parent::setUp();
-		$this->_init();
-	}
-
-	/**
-	 * init method
-	 *
-	 * @return void
-	 */
-	protected function _init() {
-		$request = new CakeRequest('controller_posts/index');
-		$response = new CakeResponse();
-		$this->Controller = new RestKitTestController($request, $response);
-		$this->Controller->constructClasses();
-
-		$this->RequestHandler = new RequestHandlerComponent($this->Controller->Components);
-
-		// set up Auth
-		$collection = new ComponentCollection();
-		$collection->init($this->Controller);
-		$this->Controller->Auth = new AuthComponent($collection);
-
-		$this->RestKit = new RestKitComponent($this->Controller->Components);
-		$this->_extensions = Router::extensions();
+		$Collection = new ComponentCollection();
+		$this->RestKit = new RestKitComponent($Collection);
 	}
 
 	/**
@@ -81,27 +27,168 @@ class RestKitComponentTest extends CakeTestCase {
 	 * @return void
 	 */
 	public function tearDown() {
+		unset($this->RestKit);
+
 		parent::tearDown();
-		unset($this->RestKit, $this->Controller);
-		if (!headers_sent()) {
-			header('Content-type: text/html'); //reset content type.
-		}
-		call_user_func_array('Router::parseExtensions', $this->_extensions);
 	}
 
 	/**
-	 * Test prefers plain JSON
+	 * testGetSuccessMediaTypes() expects an array with all success Media Types for either json or xml
 	 *
 	 * @return void
 	 */
-	public function testPrefersPlainMediaType() {
-		$this->RequestHandler->initialize($this->Controller);
-		$this->Controller->Auth->initialize($this->Controller);
-		$this->RestKit->initialize($this->Controller);
-		//$this->assertNull($this->RequestHandler->ext);
+	public function testGetSuccessMediaTypes() {
+		$expected = array('json', 'jsonHal');
+		$this->assertEqual($this->RestKit->getSuccessMediaTypes('json'), $expected);
 
-		//$_SERVER['HTTP_ACCEPT'] = 'application/json';
-		//$this->assertTrue($this->RestKit->prefers('plain'));
+		$expected = array('xml', 'xmlHal');
+		$this->assertEqual($this->RestKit->getSuccessMediaTypes('xml'), $expected);
+	}
+
+	/**
+	 * testGetSuccessMediaTypes() expects an array with all error Media Types for either json or xml
+	 *
+	 * @return void
+	 */
+	public function testGetErrorMediaTypes() {
+		$expected = array('json', 'jsonVndError');
+		$this->assertEqual($this->RestKit->getErrorMediaTypes('json'), $expected);
+
+		$expected = array('xml', 'xmlVndError');
+		$this->assertEqual($this->RestKit->getErrorMediaTypes('xml'), $expected);
+	}
+
+	/**
+	 * testMimeTypes() tests if all implemented Media Types are added to the CakeResponse by
+	 * mapping types to aliases (and vice versa)
+	 */
+	public function testMimeTypes() {
+
+		// plain
+		$this->assertEqual($this->controller->response->getMimeType('json'), 'application/json');
+		$this->assertEqual($this->controller->response->getAlias('application/json'), 'json');
+		$this->assertEqual($this->controller->response->getMimeType('xml'), 'application/xml');
+		$this->assertEqual($this->controller->response->getAlias('application/xml'), 'xml');
+
+		// HAL
+		$this->assertEqual($this->controller->response->getMimeType('jsonHal'), 'application/hal+json');
+		$this->assertEqual($this->controller->response->getAlias('application/hal+json'), 'jsonHal');
+		$this->assertEqual($this->controller->response->getMimeType('xmlHal'), 'application/hal+xml');
+		$this->assertEqual($this->controller->response->getAlias('application/hal+xml'), 'xmlHal');
+
+		// vnd.error
+		$this->assertEqual($this->controller->response->getMimeType('jsonVndError'), 'application/vnd.error+json');
+		$this->assertEqual($this->controller->response->getAlias('application/vnd.error+json'), 'jsonVndError');
+		$this->assertEqual($this->controller->response->getMimeType('xmlVndError'), 'application/vnd.error+xml');
+		$this->assertEqual($this->controller->response->getAlias('application/vnd.error+xml'), 'xmlVndError');
+	}
+
+	/**
+	 * testGetPreferredSuccessType method
+	 *
+	 * @return void
+	 */
+	public function testGetPreferredSuccessType() {
+
+	}
+
+	/**
+	 * testGetPreferredErrorType method
+	 *
+	 * @return void
+	 */
+	public function testGetPreferredErrorType() {
+
+	}
+
+	/**
+	 * testGetSpecificSuccessType method
+	 *
+	 * @return void
+	 */
+	public function testGetSpecificSuccessType() {
+
+	}
+
+	/**
+	 * testGetSpecificErrorType method
+	 *
+	 * @return void
+	 */
+	public function testGetSpecificErrorType() {
+
+	}
+
+	/**
+	 * testIsValidRestKitRequest method
+	 *
+	 * @return void
+	 */
+	public function testIsValidRestKitRequest() {
+
+	}
+
+	/**
+	 * testRoutes method
+	 *
+	 * @return void
+	 */
+	public function testRoutes() {
+
+	}
+
+	/**
+	 * testPrefers method
+	 *
+	 * @return void
+	 */
+	public function testPrefers() {
+
+	}
+
+	/**
+	 * testPreferredFamilyIs method
+	 *
+	 * @return void
+	 */
+	public function testPreferredFamilyIs() {
+
+	}
+
+	/**
+	 * testGetAcceptTypes method
+	 *
+	 * @return void
+	 */
+	public function testGetAcceptTypes() {
+
+	}
+
+	/**
+	 * testIsException method
+	 *
+	 * @return void
+	 */
+	public function testIsException() {
+
+	}
+
+	/**
+	 * testHasOption method
+	 *
+	 * @return void
+	 */
+	public function testHasOption() {
+
+	}
+
+	/**
+	 * testValidOption method
+	 *
+	 * @return void
+	 */
+	public function testValidOption() {
+
 	}
 
 }
